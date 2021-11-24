@@ -198,7 +198,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
     self$print_out = print_out
     self$Xagg = self$X[[1]]
     self$Ragg = self$R[[1]]
-    for(d in 2:D){
+    for(d in 2:self$D){
       self$Xagg = cbind(self$Xagg, self$X[[d]])
       self$Ragg = cbind(self$Ragg, self$R[[d]])
     }
@@ -312,8 +312,8 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
   
   direction_selection = function(method = "penalized objective", penalty.C = 2,nfolds = 10, foldid = NULL, seed = 2021, n.core = NULL, trace = F){
     if(method == "penalized objective"){
-      Zs = array(0, dim = c(n, D, dim(self$out_single_update$beta_augs)[2]))
-      Zs_residual = array(0, dim = c(n, D, dim(self$out_single_update$beta_augs)[2]))
+      Zs = array(0, dim = c(n, self$D, dim(self$out_single_update$beta_augs)[2]))
+      Zs_residual = array(0, dim = c(n, self$D, dim(self$out_single_update$beta_augs)[2]))
       for(d in 1:self$D){
         ll = c((self$pss[d]+1):self$pss[d+1])
         Zs[,d,] = self$Xagg[,ll]%*%self$out_single_update$beta_augs[ll,]
