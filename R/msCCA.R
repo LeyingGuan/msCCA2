@@ -482,7 +482,7 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
   errors_track = list()
   Zsum_orth.te = NA
   if(!is.null(xlist.te)){
-    Zsum_orth.te = matrix(0, nrow= nrow(xlist.te[[d]]), ncol = ncomp)
+    Zsum_orth.te = matrix(0, nrow= nrow(xlist.te[[1]]), ncol = ncomp)
   }
   
   beta_inits = list()
