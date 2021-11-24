@@ -4,10 +4,10 @@
 
 Install from github:
 
-install_github("LeyingGuan/msCCA")
+install_github("LeyingGuan/msCCA2")
 
 Download the source:
 
-install.packages("msCCA_1.0.tar.gz")
+install.packages("msCCA2_1.0.tar.gz")
 
 ## Examples

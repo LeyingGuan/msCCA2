@@ -2,27 +2,124 @@
 % Please edit documentation in R/msCCA.R
 \name{msCCAl1}
 \alias{msCCAl1}
-\title{msCCAl1: wrapper function for msCCA with decaying l1 norm bound for multiple components}
-\usage{
-msCCAl1(
-  xlist,
-  ncomp,
-  xlist.te = NULL,
-  init_method = "soft-thr",
-  nfolds = 7,
-  foldid = NULL,
-  norms = NULL,
-  norm_grids = NULL,
-  nlambda = 10,
-  rho_maxit = 200,
-  print_out = 100,
-  l1proximal_maxit = 10000,
-  rho_tol = 0.01,
-  eps = NULL,
-  mode = "full",
-  trace = F
-)
-}
+\title{msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction via msCCAl1 sequentially,
+ and can grow new directions as needed. This is the most flexible way of using msCCAl1 for experienced users.}
 \description{
-msCCAl1: wrapper function for msCCA with decaying l1 norm bound for multiple components
+msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction via msCCAl1 sequentially,
+ and can grow new directions as needed. This is the most flexible way of using msCCAl1 for experienced users.
+
+msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction via msCCAl1 sequentially,
+ and can grow new directions as needed. This is the most flexible way of using msCCAl1 for experienced users.
+}
+\section{Methods}{
+\subsection{Public methods}{
+\itemize{
+\item \href{#method-new}{\code{msCCAl1$new()}}
+\item \href{#method-beta_init_func}{\code{msCCAl1$beta_init_func()}}
+\item \href{#method-direction_update_single}{\code{msCCAl1$direction_update_single()}}
+\item \href{#method-direction_selection}{\code{msCCAl1$direction_selection()}}
+\item \href{#method-direction_grow}{\code{msCCAl1$direction_grow()}}
+\item \href{#method-clone}{\code{msCCAl1$clone()}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{msCCAl1$new(
+  X,
+  beta_init = NULL,
+  norm_type = 1,
+  eta = NULL,
+  eta_ratio = NULL,
+  rho_tol = 0.001,
+  rho_maxit = 1000,
+  l1proximal_tol = 1e-04,
+  l1proximal_maxit = 1000,
+  line_search = TRUE,
+  line_maxit = 10,
+  eta_low = NULL,
+  eps = NULL,
+  init_method = "rgcca",
+  my_init_param = NULL,
+  trace = TRUE,
+  print_out = 50
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-beta_init_func"></a>}}
+\if{latex}{\out{\hypertarget{method-beta_init_func}{}}}
+\subsection{Method \code{beta_init_func()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{msCCAl1$beta_init_func(R)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-direction_update_single"></a>}}
+\if{latex}{\out{\hypertarget{method-direction_update_single}{}}}
+\subsection{Method \code{direction_update_single()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{msCCAl1$direction_update_single(
+  X = NULL,
+  R = NULL,
+  beta_init = NULL,
+  l1norm_max = NULL,
+  l1norm_min = NULL,
+  warm_up = 50,
+  rho_maxit = NULL,
+  trace = F,
+  early_stop = T,
+  record = T,
+  cv = F
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-direction_selection"></a>}}
+\if{latex}{\out{\hypertarget{method-direction_selection}{}}}
+\subsection{Method \code{direction_selection()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{msCCAl1$direction_selection(
+  method = "penalized objective",
+  penalty.C = 2,
+  nfolds = 10,
+  foldid = NULL,
+  seed = 2021,
+  n.core = NULL,
+  trace = F
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-direction_grow"></a>}}
+\if{latex}{\out{\hypertarget{method-direction_grow}{}}}
+\subsection{Method \code{direction_grow()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{msCCAl1$direction_grow(step_idx = 1)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
+\subsection{Method \code{clone()}}{
+The objects of this class are cloneable with this method.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{msCCAl1$clone(deep = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{deep}}{Whether to make a deep clone.}
+}
+\if{html}{\out{</div>}}
+}
+}
 }
