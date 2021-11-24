@@ -321,7 +321,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       }
       Zsums = apply(Zs_residual, c(1,3), sum)
       rho.hat = apply(Zsums^2,c(2),sum)/apply(Zs^2,c(3),sum)
-      evaluation_obj = rho.hat - penalty.C*sqrt(log(ptotal)/n)*self$out_single_update$beta_norms
+      evaluation_obj = rho.hat - penalty.C*sqrt(log(self$ptotal)/n)*self$out_single_update$beta_norms
       # idx_tmp= which.max(evaluation_obj)
       # rho_tmp = rho.hat[idx_tmp]
       # evaluation_obj = rho.hat - (1+(penalty.C-1)*((rho_tmp-1)/(self$D-1)))*sqrt(log(ptotal)/n)*self$out_single_update$beta_norms
@@ -367,7 +367,8 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         }
         beta_init_cv = self$beta_init_func(Rtmp)
         print(paste0("finish initializing fold id = ", fold_id))
-        out_cv = msCCAproximal_l1$direction_update_single(X = Xtmp, R =  Rtmp,
+        
+        out_cv = self$direction_update_single(X = Xtmp, R =  Rtmp,
                                                              beta_init =  beta_init_cv,
                                                              l1norm_max =  self$l1norm_max,   l1norm_min = self$l1norm_min,
                                                              warm_up = self$warm_up, rho_maxit = ncol(self$out_single_update$beta_augs) , 
@@ -390,7 +391,8 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         print(paste0("end fold id = ", fold_id))
         return(rho_components)
       }
-      outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+      #outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+      outputs <-try(lapply(1:nfolds,cv_evaluation))
       evaluation_obj = outputs[[1]]
       for(i in 2:length(outputs)){
         evaluation_obj= evaluation_obj+outputs[[i]]

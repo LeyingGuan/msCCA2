@@ -136,7 +136,7 @@ sim_data_mCCA = function(n = 200, nte = 1000, p = 200, s = 10, D = 5, seed =2021
               Sigma = Sigma))
 }
 p = 300; nte = 1000; ncomp = 3; alpha = 0; D = 4; ncomp1 =10 #ncomp-1
-n=300; s = 15;D = 4;type = "identity";redundant = T; seed = 219;#seed = sample(1:10000,1);  
+n=500; s = 15;D = 4;type = "identity";redundant = T; seed = 219;#seed = sample(1:10000,1);  
 
 dat = sim_data_mCCA(n = n, nte = nte, p =p, s = s, D = D, seed =seed, ncomp = ncomp,
                     redundant = redundant, type = type)
@@ -177,15 +177,15 @@ n = nrow(xlist[[1]])
 # }
 
 
-nfolds = 16
+nfolds = 8
 set.seed(seed)
 foldid = sample(rep(1:nfolds, each = ceiling(n/nfolds)), n)
-eta = 0.05; maxit = 5000; s_upper = n/4
+eta = 0.05; maxit = 5000; s_upper = n/4; eta_ratio = 0.05; penalty.C = 1.9;
 start_times =rep(NA, 3)
 end_times =rep(NA, 3)
 start_times[1] = Sys.time()
 fitted1 = msCCAl1func(xlist = xlist, ncomp=2, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,
-                      l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = 0.05,
+                      l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
                       rho_maxit = maxit, print_out = 100, step_selection = "penalized", seed = 2021)
 end_times[1] = Sys.time()  
 print(end_times[1]-start_times[1])
