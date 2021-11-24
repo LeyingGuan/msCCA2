@@ -391,8 +391,8 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         print(paste0("end fold id = ", fold_id))
         return(rho_components)
       }
-      #outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
-      outputs <-try(lapply(1:nfolds,cv_evaluation))
+      outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+      #outputs <-try(lapply(1:nfolds,cv_evaluation))
       evaluation_obj = outputs[[1]]
       for(i in 2:length(outputs)){
         evaluation_obj= evaluation_obj+outputs[[i]]
