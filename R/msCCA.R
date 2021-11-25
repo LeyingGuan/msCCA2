@@ -549,9 +549,6 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
   pss = c(0,cumsum(ps))
   rlist = xlist
   ptotal = pss[D+1]
-  if(is.null(n.core)){
-    n.core = min(nfolds, detectCores())
-  }
   Lambdahat = matrix(0, nrow = ptotal, ncol = ptotal)
   for(d in 1:D){
     ll = (pss[d]+1):(pss[d+1])
@@ -562,6 +559,9 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
     foldid = sample(rep(1:nfolds, each = ceiling(n/nfolds)), n)
   }else{
     nfolds = length(unique(foldid))
+  }
+  if(is.null(n.core)){
+    n.core = min(nfolds, detectCores())
   }
   cv_evaluation = function(fold_id){
     print(paste0("start fold ",fold_id))

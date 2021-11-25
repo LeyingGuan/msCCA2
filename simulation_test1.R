@@ -136,7 +136,7 @@ sim_data_mCCA = function(n = 200, nte = 1000, p = 200, s = 10, D = 5, seed =2021
               Sigma = Sigma))
 }
 p = 300; nte = 1000; ncomp = 3; alpha = 0; D = 4; ncomp1 =10 #ncomp-1
-n=500; s = 15;D = 4;type = "identity";redundant = T; seed = 219;#seed = sample(1:10000,1);  
+n=500; s = 5;D = 4;type = "identity";redundant = T; seed = 219;#seed = sample(1:10000,1);  
 
 dat = sim_data_mCCA(n = n, nte = nte, p =p, s = s, D = D, seed =seed, ncomp = ncomp,
                     redundant = redundant, type = type)
@@ -201,7 +201,7 @@ print(end_times[2]-start_times[2])
 
 start_times[3] = Sys.time()
 fitted3 = riffle_sequential(xlist = xlist, ncomp = 2, xlist.te = xlist.te, foldid = foldid, maxiter =maxit, eta = eta,
-                            ss = floor(seq(2,  s_upper, length.out = 10)),  n.core = NULL, seed = seed)
+                            ss = floor(seq(sqrt(2), sqrt(s_upper), length.out = 10)^2),  n.core = NULL, seed = seed)
 end_times[3] = Sys.time()  
 print(fitted3$errors_track)
 print(end_times[3]-start_times[3])
