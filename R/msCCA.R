@@ -419,8 +419,6 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       self$prev_norms = c(self$prev_norms, self$out_single_update$beta_norms[step_idx])
       for(d in 1:self$D){
         ii = (self$pss[d]+1):self$pss[d+1]
-      }
-      for(d in 1:self$D){
         self$prev_directions[[d]] = cbind(self$prev_directions[[d]],self$out_single_update$beta_augs[ii,step_idx])
       }
     }
