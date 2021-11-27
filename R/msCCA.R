@@ -583,7 +583,7 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
     print(paste0("finish initialize fold ",fold_id))
     beta_aggs_tmp = matrix(NA, ncol = length(ss), nrow = ptotal)
     for(l in 1:length(ss)){
-      #print(l)
+      print(l)
       beta_aggs_tmp[,l] = rifle::rifle(A = Sigmahat_tmp, B = Lambdahat_tmp, init = beta_init_agg, k = ss[l],  maxiter =  maxiter)
     }
     return(beta_aggs_tmp)
