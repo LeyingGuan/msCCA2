@@ -310,7 +310,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
     return(out)
   },
   
-  direction_selection = function(method = "penalized objective", penalty.C = 2,nfolds = 10, foldid = NULL, seed = 2021, n.core = NULL, trace = F){
+  direction_selection = function(method = "penalized objective", penalty.C = 2,nfolds = 10, foldid = NULL, seed = 2021, multi.core = T, n.core = NULL, trace = F){
     if(method == "penalized objective"){
       Zs = array(0, dim = c(n, self$D, dim(self$out_single_update$beta_augs)[2]))
       Zs_residual = array(0, dim = c(n, self$D, dim(self$out_single_update$beta_augs)[2]))
@@ -363,7 +363,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         Rtmp = list()
         for(d in 1:self$D){
           Xtmp[[d]] = self$X[[d]][train_foldid,]
-          Rtmp[[d]] = self$R[[d]][train_foldid,]
+          Rtmp[[d]] = self$R[[d]][train_foldid,] 
         }
         beta_init_cv = self$beta_init_func(Rtmp)
         print(paste0("finish initializing fold id = ", fold_id))
@@ -391,7 +391,12 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         print(paste0("end fold id = ", fold_id))
         return(rho_components)
       }
-      outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+      if( multi.core){
+        outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+      }else{
+        outputs <-try(lapply(1:nfolds,cv_evaluation))
+      }
+      
       #outputs <-try(lapply(1:nfolds,cv_evaluation))
       evaluation_obj = outputs[[1]]
       for(i in 2:length(outputs)){
@@ -453,7 +458,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
   
 msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", nfolds = 20, warm_up = 50, penalty.C=2, foldid = NULL,
                        l1norm_max = NULL, l1norm_min = NULL,  eta_ratio = NULL, eta = NULL, eps = NULL, my_init_param = NULL,
-                       l1proximal_maxit = 1e4, rho_tol = 1e-3, rho_maxit = 5000, print_out = 100, step_selection = "penalized", seed = 2021){
+                       l1proximal_maxit = 1e4, rho_tol = 1e-3, rho_maxit = 5000, print_out = 100, step_selection = "penalized", multi.core = T, seed = 2021){
   set.seed(seed)
   D = length(xlist)
   ps = sapply(xlist,function(z) dim(z)[2])
@@ -496,9 +501,9 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
     errors_track[[k]] = data.frame(matrix(NA, ncol = 3, nrow = ncol(out$beta_augs)))
     errors_track[[k]][,1] = out$beta_norms
     if(step_selection=="penalized"){
-      out1 = msCCAproximal_l1$direction_selection(method = "penalized objective", penalty.C = penalty.C, nfolds = nfolds, foldid = NULL, seed = seed, n.core = NULL)
+      out1 = msCCAproximal_l1$direction_selection(method = "penalized objective", penalty.C = penalty.C, nfolds = nfolds, foldid = NULL, seed = seed, n.core = NULL, multi.core = multi.core)
     }else if(step_selection=="cv"){
-      out1 = msCCAproximal_l1$direction_selection(method = "cv", nfolds = nfolds, foldid = foldid, seed = seed, n.core = NULL)
+      out1 = msCCAproximal_l1$direction_selection(method = "cv", nfolds = nfolds, foldid = foldid, seed = seed, n.core = NULL, multi.core = multi.core)
     }else{
       stop("step_selection must be penalized or cv!")
     }
