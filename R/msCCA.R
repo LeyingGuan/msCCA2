@@ -407,17 +407,16 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         }
         beta_init_cv=beta_init_func(R =Rtmp, init_method = init_method , my_init_param=my_init_param, X = Xtmp)
         print(paste0("finish initializing fold id = ", fold_id))
-        out_cv = direction_single_update_l1_func(X = Xtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
+        # out_cv = direction_single_update_l1_func(X = Xtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
+        #                                          eta_low = eta_low,  eps = eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
+        #                                          rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
+        #                                          l1proximal_maxit =  l1proximal_maxit, line_maxit =line_maxit, 
+        #                                          warm_up = warm_up, trace = F, print_out = print_out, early_stop = F)
+        out_cv = direction_single_update_l1_func(X = Rtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
                                                  eta_low = eta_low,  eps = eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
                                                  rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
                                                  l1proximal_maxit =  l1proximal_maxit, line_maxit =line_maxit, 
                                                  warm_up = warm_up, trace = F, print_out = print_out, early_stop = F)
-          
-          # self$direction_single_update(X = Xtmp, R =  Rtmp,
-          #                                                    beta_init =  beta_init_cv,
-          #                                                    l1norm_max =  self$l1norm_max,   l1norm_min = self$l1norm_min,
-          #                                                    warm_up = self$warm_up, rho_maxit = ncol(self$out_single_update$beta_augs) , 
-          #                                                    trace =F, early_stop = F, record = F)
         ##evaluate on test data
         Zs = array(NA, dim = c(length(test_foldid), D, dim(out_cv$beta_augs)[2]))
         Zs_residual = array(NA, dim = c(length(test_foldid), D, dim(out_cv$beta_augs)[2]))
@@ -545,8 +544,12 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
   for(k in 1:ncomp){
     print(paste0("####################comp", k))
     beta_inits[[k]] = msCCAproximal_l1$beta_init
-    out = msCCAproximal_l1$direction_update_single(X =  msCCAproximal_l1$X, R =  msCCAproximal_l1$R, 
-                                                   beta_init =  msCCAproximal_l1$beta_init, 
+    # out = msCCAproximal_l1$direction_update_single(X =  msCCAproximal_l1$X, R =  msCCAproximal_l1$R, 
+    #                                                beta_init =  msCCAproximal_l1$beta_init, 
+    #                                                l1norm_max =  l1norm_max,   l1norm_min = l1norm_min,
+    #                                                warm_up =warm_up, trace = T)
+    out = msCCAproximal_l1$direction_update_single(X =  msCCAproximal_l1$R, R =  msCCAproximal_l1$R,
+                                                   beta_init =  msCCAproximal_l1$beta_init,
                                                    l1norm_max =  l1norm_max,   l1norm_min = l1norm_min,
                                                    warm_up =warm_up, trace = T)
     errors_track[[k]] = data.frame(matrix(NA, ncol = 3, nrow = ncol(out$beta_augs)))
