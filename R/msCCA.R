@@ -96,6 +96,30 @@ zsum_func = function(Xagg, beta_agg, prev_Zsum_orth = NULL){
   }
   return(list(zsum = zsum, zsum_orth = zsum_orth))
 }
+
+direction_single_update_l1_func = function(X, R,  beta_init, eta, eta_ratio,eta_low,  eps, 
+                                        l1norm_max , l1norm_min,  rho_tol, rho_maxit,
+                                        l1proximal_tol, l1proximal_maxit, line_maxit, 
+                                        warm_up, trace, print_out, early_stop){
+  D = length(X)
+  out =msCCA_proximal_rank1(beta =beta_init, X = X, R = R, eta = eta, eta_ratio = eta_ratio,
+                            eta_low =  eta_low,   eps = eps, l1norm_max = l1norm_max, l1norm_min = l1norm_min,
+                            rho_tol =  rho_tol , rho_maxit = rho_maxit,  norm_type = 1,  l0norm = 0, 
+                             l1proximal_tol = l1proximal_tol,  l1proximal_maxit =  l1proximal_maxit,
+                            line_maxit =  line_maxit,warm_up = warm_up, trace =  trace, print_out =  print_out,
+                            early_stop = early_stop)
+  names = c("beta_augs", "beta_norms", "bounds",  "rho_denominators", "rho_numerators", "rhos")
+  for(i in 1:length(names )){
+    if(names[i]=="beta_augs"){
+      out[[names[i]]] = out[[names[i]]][,1:(out$end_iter+1)]
+    }else{
+      out[[names[i]]] = out[[names[i]]][1:(out$end_iter+1)]
+    }
+    
+  }
+  return(out)
+  
+}
 #' msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction via msCCAl1 sequentially,
 #'  and can grow new directions as needed. This is the most flexible way of using msCCAl1 for experienced users.
 #'@export
@@ -263,8 +287,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
     return(beta_init)
   },
   direction_update_single = function(X = NULL, R = NULL,  beta_init = NULL, l1norm_max = NULL, 
-                                        l1norm_min = NULL,  warm_up = 50, rho_maxit = NULL, trace = F, 
-                                     early_stop = T, record = T, cv = F){
+                                        l1norm_min = NULL,  warm_up = 50, rho_maxit = NULL, trace = F){
     if((is.null(l1norm_max) | is.null(l1norm_min))){
       stop("no l1 norm max or min provided!")
     }
@@ -285,15 +308,18 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       }
     }
     self$warm_up = warm_up
-    if(is.null(rho_maxit)){
-      rho_maxit = self$rho_maxit
-    }
-    out =msCCA_proximal_rank1(beta =beta_init1, X = X, R = R, rho_tol = self$rho_tol , rho_maxit = rho_maxit, 
-                                eta = self$eta, norm_type = 1,  l0norm = 0, l1norm_max = l1norm_max, l1norm_min = l1norm_min,
-                                eta_ratio = self$eta_ratio, l1proximal_tol =  self$l1proximal_tol, 
-                                l1proximal_maxit =  self$l1proximal_maxit,
-                                line_maxit =  self$line_maxit, eta_low =  self$eta_low, eps = self$eps,warm_up = warm_up, trace =  trace, print_out =  self$print_out,
-                                early_stop = early_stop)
+    out = direction_single_update_l1_func(X = X, R = R,  beta_init = beta_init1, eta = self$eta, eta_ratio =  self$eta_ratio,
+                                          eta_low = self$eta_low,  eps = self$eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
+                                          rho_tol = self$rho_tol, rho_maxit = self$rho_maxit,
+                                           l1proximal_tol = self$l1proximal_tol, l1proximal_maxit =  self$l1proximal_maxit, line_maxit =self$line_maxit, 
+                                           warm_up = self$warm_up, trace = trace, print_out = self$print_out, early_stop = T)
+    #   
+    # out =msCCA_proximal_rank1(beta =beta_init1, X = X, R = R, rho_tol = self$rho_tol , rho_maxit = rho_maxit, 
+    #                             eta = self$eta, norm_type = 1,  l0norm = 0, l1norm_max = l1norm_max, l1norm_min = l1norm_min,
+    #                             eta_ratio = self$eta_ratio, l1proximal_tol =  self$l1proximal_tol, 
+    #                             l1proximal_maxit =  self$l1proximal_maxit,
+    #                             line_maxit =  self$line_maxit, eta_low =  self$eta_low, eps = self$eps,warm_up = warm_up, trace =  trace, print_out =  self$print_out,
+    #                             early_stop = early_stop)
     names = c("beta_augs", "beta_norms", "bounds",  "rho_denominators", "rho_numerators", "rhos")
     for(i in 1:length(names )){
       if(names[i]=="beta_augs"){
@@ -303,10 +329,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       }
       
     }
-    if(record){
-      self$out_single_update = out
-    }
-    
+    self$out_single_update = out
     return(out)
   },
   
@@ -354,6 +377,11 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         }
         nfolds = length(unique(foldid))
       }
+      X = self$X;R = self$R; pss = self$pss
+      eta = self$eta;eta_ratio = self$eta_ratio; eta_low = self$eta_low; eps = self$eps;
+      l1norm_max = self$l1norm_max ; l1norm_min = self$l1norm_min; rho_tol = self$rho_tol; rho_maxit = ncol(self$out_single_update[["beta_augs"]]);
+      l1proximal_tol = self$l1proximal_tol;l1proximal_maxit =  self$l1proximal_maxit;line_maxit =self$line_maxit;
+      warm_up = self$warm_up;  print_out = self$print_out
       cv_evaluation = function(fold_id){
         ###use the grid of bounds and step sizes from the full fit
         print(paste0("start fold id = ", fold_id))
@@ -361,25 +389,32 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         train_foldid = which(foldid!=fold_id)
         Xtmp = list()
         Rtmp = list()
-        for(d in 1:self$D){
-          Xtmp[[d]] = self$X[[d]][train_foldid,]
-          Rtmp[[d]] = self$R[[d]][train_foldid,] 
+        D = length(X)
+        for(d in 1:D){
+          Xtmp[[d]] = X[[d]][train_foldid,]
+          Rtmp[[d]] = R[[d]][train_foldid,] 
         }
         beta_init_cv = self$beta_init_func(Rtmp)
         print(paste0("finish initializing fold id = ", fold_id))
         
-        out_cv = self$direction_update_single(X = Xtmp, R =  Rtmp,
-                                                             beta_init =  beta_init_cv,
-                                                             l1norm_max =  self$l1norm_max,   l1norm_min = self$l1norm_min,
-                                                             warm_up = self$warm_up, rho_maxit = ncol(self$out_single_update$beta_augs) , 
-                                                             trace =F, early_stop = F, record = F)
+        out_cv = direction_single_update_l1_func(X = Xtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
+                                                 eta_low = eta_low,  eps = eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
+                                                 rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
+                                                 l1proximal_maxit =  l1proximal_maxit, line_maxit =line_maxit, 
+                                                 warm_up = warm_up, trace = F, print_out = print_out, early_stop = F)
+          
+          # self$direction_single_update(X = Xtmp, R =  Rtmp,
+          #                                                    beta_init =  beta_init_cv,
+          #                                                    l1norm_max =  self$l1norm_max,   l1norm_min = self$l1norm_min,
+          #                                                    warm_up = self$warm_up, rho_maxit = ncol(self$out_single_update$beta_augs) , 
+          #                                                    trace =F, early_stop = F, record = F)
         ##evaluate on test data
-        Zs = array(NA, dim = c(length(test_foldid), self$D, dim(out_cv$beta_augs)[2]))
-        Zs_residual = array(NA, dim = c(length(test_foldid), self$D, dim(out_cv$beta_augs)[2]))
-        for(d in 1:self$D){
-          ll = c((self$pss[d]+1):self$pss[d+1])
-          Zs[,d,] =self$X[[d]][test_foldid,]%*%out_cv$beta_augs[ll,]
-          Zs_residual[,d,] =self$R[[d]][test_foldid,]%*%out_cv$beta_augs[ll,]
+        Zs = array(NA, dim = c(length(test_foldid), D, dim(out_cv$beta_augs)[2]))
+        Zs_residual = array(NA, dim = c(length(test_foldid), D, dim(out_cv$beta_augs)[2]))
+        for(d in 1:D){
+          ll = c((pss[d]+1):pss[d+1])
+          Zs[,d,] =X[[d]][test_foldid,]%*%out_cv$beta_augs[ll,]
+          Zs_residual[,d,] =R[[d]][test_foldid,]%*%out_cv$beta_augs[ll,]
         }
         Zsums = apply(Zs_residual, c(1,3), sum)
         B = apply(Zs^2, 3, sum)
@@ -391,12 +426,20 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         print(paste0("end fold id = ", fold_id))
         return(rho_components)
       }
-      if( multi.core){
+      if(multi.core=="mclapply"){
         outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+      }else if(multi.core =="doparallel"){
+        cl <- makePSOCKcluster(n.core)
+        registerDoParallel(cl)
+        registerDoParallel(n.core) 
+        outputs <-try(foreach (i=1:nfolds) %dopar% {
+          cv_evaluation(i)
+        })
+        stopCluster(cl)
       }else{
         outputs <-try(lapply(1:nfolds,cv_evaluation))
       }
-      
+      print(paste0("finish evaluation "))
       #outputs <-try(lapply(1:nfolds,cv_evaluation))
       evaluation_obj = outputs[[1]]
       for(i in 2:length(outputs)){
@@ -591,7 +634,23 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
       print(l)
       beta_aggs_tmp[,l] = rifle::rifle(A = Sigmahat_tmp, B = Lambdahat_tmp, init = beta_init_agg, k = ss[l],  maxiter =  maxiter)
     }
-    return(beta_aggs_tmp)
+    test_id = which(foldid == fold_id)
+    Zs = array(NA, dim = c(length(test_id), D, length(ss)))
+    Zs_residuals = array(NA, dim = c(length(test_id), D, length(ss)))
+    for(d in 1:D){
+      ll = (pss[d]+1):pss[d+1]
+      Zs[,d,] = xlist[[d]][test_id,]%*%beta_aggs_tmp[ll,]
+      Zs_residuals[,d,]= rlist[[d]][test_id,]%*%beta_aggs_tmp[ll,]
+    }
+    Zsums = apply(Zs_residuals,c(1,3),sum)
+    B = apply(Zs^2, 3, sum)
+    A = apply(Zsums^2, 2, sum)
+    rho_components = matrix(0, nrow = length(A), ncol = 2)
+    colnames(rho_components) = c("numerator", "denominator")
+    rho_components[,1] = A
+    rho_components[,2] = B
+    print(paste0("end fold id = ", fold_id))
+    return(rho_components)
   }
   betas = array(NA, dim = c(ptotal, ncomp))
   errors_track = matrix(NA, nrow = ncomp, ncol = 3)
@@ -619,20 +678,26 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
     #################
     #################
     #cv evaluation
-    out = try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
-    Zs = array(NA, dim = c(n, D, length(ss)))
-    Zs_residuals = array(NA, dim = c(n, D, length(ss)))
-    for(fold_id in 1:nfolds){
-      test_id = which(foldid == fold_id)
-      for(d in 1:D){
-        ll = (pss[d]+1):pss[d+1]
-        Zs[test_id,d,] = xlist[[d]][test_id,]%*%out[[fold_id]][ll,]
-        Zs_residuals[test_id,d,]= rlist[[d]][test_id,]%*%out[[fold_id]][ll,]
-      }
+    #outputs <-try(lapply(1:nfolds,cv_evaluation))
+    outputs = try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+    evaluation_obj = outputs[[1]]
+    for(i in 2:length(outputs)){
+      evaluation_obj= evaluation_obj+outputs[[i]]
     }
-    Zsum = apply(Zs_residuals, c(1,3), sum)/sqrt(n)
-    Zs = Zs/sqrt(n)
-    rho_hat = apply(Zsum^2,2,sum)/apply(Zs^2,3,sum)
+    rho_hat = evaluation_obj[,1]/evaluation_obj[,2]
+    # Zs = array(NA, dim = c(n, D, length(ss)))
+    # Zs_residuals = array(NA, dim = c(n, D, length(ss)))
+    # for(fold_id in 1:nfolds){
+    #   test_id = which(foldid == fold_id)
+    #   for(d in 1:D){
+    #     ll = (pss[d]+1):pss[d+1]
+    #     Zs[test_id,d,] = xlist[[d]][test_id,]%*%out[[fold_id]][ll,]
+    #     Zs_residuals[test_id,d,]= rlist[[d]][test_id,]%*%out[[fold_id]][ll,]
+    #   }
+    # }
+    # Zsum = apply(Zs_residuals, c(1,3), sum)/sqrt(n)
+    # Zs = Zs/sqrt(n)
+    # rho_hat = apply(Zsum^2,2,sum)/apply(Zs^2,3,sum)
     idx_selected = which.max(rho_hat)
     #################
     ##################
