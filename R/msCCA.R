@@ -120,6 +120,72 @@ direction_single_update_l1_func = function(X, R,  beta_init, eta, eta_ratio,eta_
   return(out)
   
 }
+
+
+beta_init_func = function(R, init_method, my_init_param=NULL, X = NULL){
+  D = length(R)
+  n = nrow(R[[1]])
+  ps = sapply(R, function(z) ncol(z))
+  ptotal = sum(ps)
+  pss = c(0, cumsum(ps))
+  if(init_method == "rgcca"){
+    tmp<- try(rgcca(A =R,  tau = "optimal",
+                    scheme = "horst", verbose =F, ncomp = rep(1,length(R))))
+    if(class(tmp)!="try-error"){
+      beta_init0 = tmp$astar
+    }else{
+      beta_init0 = list()
+      for(d in 1:D){
+        beta_init0[[d]] = rnorm(ps[d])
+      }
+    }
+  }else if(init_method == "pma"){
+    penalties = sqrt(n/(log(ps)))
+    penalties=ifelse(penalties < sqrt(ps/4), penalties,sqrt(ps/4))
+    tmp<- try(MultiCCA(R, type=rep("standard", length(R)),
+                       penalty=penalties, ncomponents=1,   trace = F))
+    if(class(tmp)!="try-error"){
+      beta_init0 = tmp$ws
+    }else{
+      beta_init0 = list()
+      for(d in 1:D){
+        beta_init0[[d]] = rnorm(ps[d])
+      }
+    }
+  }else if(init_method == "convex"){
+    Ragg =  array(0, dim =c(nrow(R[[1]]),ptotal))
+    Lambda = array(0, dim = c(ptotal, ptotal))
+    for(d in 1:D){
+      ll = (pss[d]+1):pss[d+1]
+      Ragg[,ll] = R[[d]]
+      Lambda[ll,ll] = t(X[[d]])%*%X[[d]]/n
+    }
+    Sigma = t(Ragg)%*%Ragg/nrow(R[[1]])
+    tmp <- initial.convex(A = Sigma, B =Lambda , lambda = sqrt(log(D)/n), K = 1, nu = 1, epsilon = 0.05, maxiter = 1000, trace = F)
+    beta_init0 = list()
+    u = svd(tmp$Pi)$u[,1]
+    for(d in 1:D){
+      ll = (pss[d]+1):pss[d+1]
+      beta_init0[[d]] = u[ll]
+    }
+  }else if(init_method == "soft-thr"){
+    beta_init0 = my_init(R, my_init_param)
+  }else{
+    beta_init0 = list()
+    for(d in 1:D){
+      beta_init0[[d]] = rnorm(ps[d])
+    }
+  }
+  s = 0.0
+  for(k in 1:length(beta_init0)){
+    s = s+sum(beta_init0[[k]]^2)
+  }
+  beta_init = list()
+  for(k in 1:length(beta_init0)){
+    beta_init[[k]] = beta_init0[[k]]/sqrt(s)
+  }
+  return(beta_init)
+}
 #' msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction via msCCAl1 sequentially,
 #'  and can grow new directions as needed. This is the most flexible way of using msCCAl1 for experienced users.
 #'@export
@@ -228,62 +294,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
     }
   },
   beta_init_func = function(R){
-    if(self$init_method == "rgcca"){
-      tmp<- try(rgcca(A =R,  tau = "optimal",
-                      scheme = "horst", verbose =F, ncomp = rep(1,length(R))))
-      if(class(tmp)!="try-error"){
-        beta_init0 = tmp$astar
-      }else{
-        beta_init0 = list()
-        for(d in 1:self$D){
-          beta_init0[[d]] = rnorm(self$ps[d])
-        }
-      }
-    }else if(self$init_method == "pma"){
-      penalties = sqrt(self$n/(log(self$ps)))
-      penalties=ifelse(penalties < sqrt(self$ps/4), penalties,sqrt(self$ps/4))
-      tmp<- try(MultiCCA(R, type=rep("standard", length(R)),
-                         penalty=penalties, ncomponents=1,   trace = F))
-      if(class(tmp)!="try-error"){
-        beta_init0 = tmp$ws
-      }else{
-        beta_init0 = list()
-        for(d in 1:self$D){
-          beta_init0[[d]] = rnorm(self$ps[d])
-        }
-      }
-    }else if(self$init_method == "convex"){
-      Ragg =  array(0, dim =c(nrow(R[[1]]),self$ptotal))
-      Lambda = array(0, dim = c(self$ptotal, self$ptotal))
-      for(d in 1:D){
-        ll = (self$pss[d]+1):self$pss[d+1]
-        Ragg[,ll] = R[[d]]
-        Lambda[ll,ll] = t(self$X[[d]])%*%self$X[[d]]/n
-      }
-      Sigma = t(Ragg)%*%Ragg/nrow(R[[1]])
-      tmp <- initial.convex(A = Sigma, B =Lambda , lambda = sqrt(log(self$D)/self$n), K = 1, nu = 1, epsilon = 0.05, maxiter = 100, trace = self$trace)
-      beta_init0 = list()
-      u = svd(tmp$Pi)$u[,1]
-      for(d in 1:self$D){
-        ll = (self$pss[d]+1):self$pss[d+1]
-        beta_init0[[d]] = u[ll]
-      }
-    }else if(self$init_method == "soft-thr"){
-      beta_init0 = my_init(R, self$my_init_param)
-    }else{
-      beta_init0 = list()
-      for(d in 1:self$D){
-        beta_init0[[d]] = rnorm(self$ps[d])
-      }
-    }
-    s = 0.0
-    for(k in 1:length(beta_init0)){
-      s = s+sum(beta_init0[[k]]^2)
-    }
-    beta_init = list()
-    for(k in 1:length(beta_init0)){
-      beta_init[[k]] = beta_init0[[k]]/sqrt(s)
-    }
+    beta_init = beta_init_func(R = R, init_method = self$init_method, my_init_param=self$my_init_param, X = self$X)
     return(beta_init)
   },
   direction_update_single = function(X = NULL, R = NULL,  beta_init = NULL, l1norm_max = NULL, 
@@ -381,7 +392,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       eta = self$eta;eta_ratio = self$eta_ratio; eta_low = self$eta_low; eps = self$eps;
       l1norm_max = self$l1norm_max ; l1norm_min = self$l1norm_min; rho_tol = self$rho_tol; rho_maxit = ncol(self$out_single_update[["beta_augs"]]);
       l1proximal_tol = self$l1proximal_tol;l1proximal_maxit =  self$l1proximal_maxit;line_maxit =self$line_maxit;
-      warm_up = self$warm_up;  print_out = self$print_out
+      warm_up = self$warm_up;  print_out = self$print_out; init_method = self$init_method; my_init_param = self$my_init_param
       cv_evaluation = function(fold_id){
         ###use the grid of bounds and step sizes from the full fit
         print(paste0("start fold id = ", fold_id))
@@ -394,9 +405,8 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
           Xtmp[[d]] = X[[d]][train_foldid,]
           Rtmp[[d]] = R[[d]][train_foldid,] 
         }
-        beta_init_cv = self$beta_init_func(Rtmp)
+        beta_init_cv=beta_init_func(R =Rtmp, init_method = init_method , my_init_param=my_init_param, X = Xtmp)
         print(paste0("finish initializing fold id = ", fold_id))
-        
         out_cv = direction_single_update_l1_func(X = Xtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
                                                  eta_low = eta_low,  eps = eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
                                                  rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
@@ -676,11 +686,11 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
     #################
     #################
     #cv evaluation
-    outputs <-try(lapply(1:nfolds,cv_evaluation))
+    #outputs <-try(lapply(1:nfolds,cv_evaluation))
     # outputs <- foreach(i=1:nfolds)%dopar%{
     #   cv_evaluation(i)
     # }
-    #outputs = try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+    outputs = try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
     evaluation_obj = outputs[[1]]
     for(i in 2:length(outputs)){
       evaluation_obj= evaluation_obj+outputs[[i]]

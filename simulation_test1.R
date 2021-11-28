@@ -3,7 +3,10 @@ library(RGCCA)
 library(Rcpp)
 library(rifle)
 library(parallel)
+#library(msCCA2)
+library(parallel)
 library(doParallel)
+library(doMC)
 sourceCpp("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/src/solvers.cpp")
 source("/Users/lg689/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/helpers.R")
 source("/Users/lg689/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/msCCA.R")
@@ -177,8 +180,11 @@ n = nrow(xlist[[1]])
 #   B1[ll,ll] = t(xlist.te[[d]])%*%xlist.te[[d]]/nte
 # }
 
+#n.core = strtoi(Sys.getenv("SLURM_CPUS_PER_TASK",unset=1))
+n.core = detectCores()-1
+print(n.core)
 
-nfolds = 8
+nfolds = n.core
 set.seed(seed)
 foldid = sample(rep(1:nfolds, each = ceiling(n/nfolds)), n)
 eta = 0.05; maxit = 5000; s_upper = n/4; eta_ratio = 0.05; penalty.C = 1.9;
