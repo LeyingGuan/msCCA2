@@ -505,7 +505,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
   
 msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", nfolds = 20, warm_up = 50, penalty.C=2, foldid = NULL,
                        l1norm_max = NULL, l1norm_min = NULL,  eta_ratio = NULL, eta = NULL, eps = NULL, my_init_param = NULL,
-                       l1proximal_maxit = 1e4, rho_tol = 1e-3, rho_maxit = 5000, print_out = 100, step_selection = "penalized", multi.core = T, seed = 2021){
+                       l1proximal_maxit = 1e4, rho_tol = 1e-3, rho_maxit = 5000, print_out = 100, step_selection = "penalized", multi.core = "mclapply", seed = 2021){
   set.seed(seed)
   D = length(xlist)
   ps = sapply(xlist,function(z) dim(z)[2])
@@ -596,7 +596,7 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
 
 
 riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/4, length.out = 10)), nfolds = 10, foldid = NULL, 
-                             n.core = NULL, seed = 2021,  eta = 0.05, maxiter = 5000){
+                             n.core = NULL, seed = 2021,  eta = 0.05, maxiter = 5000, multi.core = "lapply"){
   D = length(xlist)
   n = nrow(xlist[[1]])
   ps = sapply(xlist, function(z) dim(z)[2])
@@ -686,11 +686,15 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
     #################
     #################
     #cv evaluation
-    #outputs <-try(lapply(1:nfolds,cv_evaluation))
-    # outputs <- foreach(i=1:nfolds)%dopar%{
-    #   cv_evaluation(i)
-    # }
-    outputs = try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+    if(multi.core=="mclapply"){
+      outputs <-mclapply(1:nfolds,cv_evaluation, mc.cores =n.core)
+    }else if(multi.core=="doparallel"){
+      outputs <- foreach(i=1:nfolds)%dopar%{
+        cv_evaluation(i)
+      }
+    }else{
+      outputs <-lapply(1:nfolds,cv_evaluation)
+    }
     evaluation_obj = outputs[[1]]
     for(i in 2:length(outputs)){
       evaluation_obj= evaluation_obj+outputs[[i]]

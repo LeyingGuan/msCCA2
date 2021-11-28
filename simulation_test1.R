@@ -3,13 +3,13 @@ library(RGCCA)
 library(Rcpp)
 library(rifle)
 library(parallel)
-#library(msCCA2)
+library(msCCA2)
 library(parallel)
 library(doParallel)
 library(doMC)
-sourceCpp("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/src/solvers.cpp")
-source("/Users/lg689/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/helpers.R")
-source("/Users/lg689/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/msCCA.R")
+#sourceCpp("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/src/solvers.cpp")
+#source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/helpers.R")
+#source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/msCCA.R")
 
 
 #library(msCCA)
@@ -159,11 +159,11 @@ start_time =c()
 end_time = c()
 nte = dim(xagg.te)[1]
 
-D = length(xlist)
-ps = sapply(xlist,function(z) dim(z)[2])
-pss = c(0,cumsum(ps))
-ptotal = pss[D+1]
-n = nrow(xlist[[1]])
+# D = length(xlist)
+# ps = sapply(xlist,function(z) dim(z)[2])
+# pss = c(0,cumsum(ps))
+# ptotal = pss[D+1]
+# n = nrow(xlist[[1]])
 # 
 # A = t(xagg)%*%xagg/n
 # B = array(0, dim = dim(A))
@@ -184,6 +184,7 @@ n = nrow(xlist[[1]])
 n.core = detectCores()-1
 print(n.core)
 
+
 nfolds = n.core
 set.seed(seed)
 foldid = sample(rep(1:nfolds, each = ceiling(n/nfolds)), n)
@@ -193,12 +194,13 @@ end_times =rep(NA, 3)
 start_times[1] = Sys.time()
 fitted1 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,
                       l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
-                      rho_maxit = maxit, print_out = 100, step_selection = "penalized", seed = 2021)
+                      rho_maxit = maxit, print_out = 100, step_selection = "penalized", seed = 2021, multi.core=multi.core)
 end_times[1] = Sys.time()  
 print(end_times[1]-start_times[1])
 print(fitted1$errors_track_selected)
  
 start_times[2] = Sys.time()
+multi.core= "mclapply"
 fitted2 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,
                       l1norm_max =sqrt( s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
                       rho_maxit = maxit, print_out = 100, step_selection = "cv", seed = 2021, multi.core="mclapply")
