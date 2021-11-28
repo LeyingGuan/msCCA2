@@ -431,7 +431,6 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       }else if(multi.core =="doparallel"){
         cl <- makePSOCKcluster(n.core)
         registerDoParallel(cl)
-        registerDoParallel(n.core) 
         outputs <-try(foreach (i=1:nfolds) %dopar% {
           cv_evaluation(i)
         })
@@ -440,7 +439,6 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         outputs <-try(lapply(1:nfolds,cv_evaluation))
       }
       print(paste0("finish evaluation "))
-      #outputs <-try(lapply(1:nfolds,cv_evaluation))
       evaluation_obj = outputs[[1]]
       for(i in 2:length(outputs)){
         evaluation_obj= evaluation_obj+outputs[[i]]
@@ -678,26 +676,16 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
     #################
     #################
     #cv evaluation
-    #outputs <-try(lapply(1:nfolds,cv_evaluation))
-    outputs = try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+    outputs <-try(lapply(1:nfolds,cv_evaluation))
+    # outputs <- foreach(i=1:nfolds)%dopar%{
+    #   cv_evaluation(i)
+    # }
+    #outputs = try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
     evaluation_obj = outputs[[1]]
     for(i in 2:length(outputs)){
       evaluation_obj= evaluation_obj+outputs[[i]]
     }
     rho_hat = evaluation_obj[,1]/evaluation_obj[,2]
-    # Zs = array(NA, dim = c(n, D, length(ss)))
-    # Zs_residuals = array(NA, dim = c(n, D, length(ss)))
-    # for(fold_id in 1:nfolds){
-    #   test_id = which(foldid == fold_id)
-    #   for(d in 1:D){
-    #     ll = (pss[d]+1):pss[d+1]
-    #     Zs[test_id,d,] = xlist[[d]][test_id,]%*%out[[fold_id]][ll,]
-    #     Zs_residuals[test_id,d,]= rlist[[d]][test_id,]%*%out[[fold_id]][ll,]
-    #   }
-    # }
-    # Zsum = apply(Zs_residuals, c(1,3), sum)/sqrt(n)
-    # Zs = Zs/sqrt(n)
-    # rho_hat = apply(Zsum^2,2,sum)/apply(Zs^2,3,sum)
     idx_selected = which.max(rho_hat)
     #################
     ##################
