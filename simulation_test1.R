@@ -7,9 +7,9 @@ library(msCCA2)
 library(parallel)
 library(doParallel)
 library(doMC)
-#sourceCpp("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/src/solvers.cpp")
-#source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/helpers.R")
-#source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/msCCA.R")
+sourceCpp("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/src/solvers.cpp")
+source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/helpers.R")
+source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/msCCA.R")
 
 
 #library(msCCA)
@@ -184,8 +184,10 @@ nte = dim(xagg.te)[1]
 n.core = detectCores()-1
 print(n.core)
 
+registerDoParallel(cl)
 
-nfolds = n.core
+multi.core= "doparallel"
+nfolds = 5
 set.seed(seed)
 foldid = sample(rep(1:nfolds, each = ceiling(n/nfolds)), n)
 eta = 0.05; maxit = 5000; s_upper = n/4; eta_ratio = 0.05; penalty.C = 1.9;
@@ -200,17 +202,17 @@ print(end_times[1]-start_times[1])
 print(fitted1$errors_track_selected)
  
 start_times[2] = Sys.time()
-multi.core= "mclapply"
+
 fitted2 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,
                       l1norm_max =sqrt( s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
-                      rho_maxit = maxit, print_out = 100, step_selection = "cv", seed = 2021, multi.core="mclapply")
+                      rho_maxit = maxit, print_out = 100, step_selection = "cv", seed = 2021, multi.core=multi.core)
 end_times[2] = Sys.time()
 print(fitted2$errors_track_selected)
 print(end_times[2]-start_times[2])
 
 start_times[3] = Sys.time()
 fitted3 = riffle_sequential(xlist = xlist, ncomp = ncomp1, xlist.te = xlist.te, foldid = foldid, maxiter =maxit, eta = eta,
-                            ss = floor(seq(sqrt(2), sqrt(s_upper), length.out = 10)^2),  n.core = NULL, seed = seed)
+                            ss = floor(seq(sqrt(2), sqrt(s_upper), length.out = 10)^2),  n.core = NULL, seed = seed, multi.core=multi.core)
 end_times[3] = Sys.time()  
 print(fitted3$errors_track)
 print(end_times[3]-start_times[3])

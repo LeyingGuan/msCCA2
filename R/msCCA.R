@@ -433,16 +433,16 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         return(rho_components)
       }
       if(multi.core=="mclapply"){
-        outputs <-try(mclapply(1:nfolds,cv_evaluation, mc.cores =n.core))
+        outputs <-mclapply(1:nfolds,cv_evaluation, mc.cores =n.core)
       }else if(multi.core =="doparallel"){
-        cl <- makePSOCKcluster(n.core)
-        registerDoParallel(cl)
-        outputs <-try(foreach (i=1:nfolds) %dopar% {
+        #cl <- makePSOCKcluster(n.core)
+        #registerDoParallel(n.core)
+        outputs <-foreach (i=1:nfolds)%dopar%{
           cv_evaluation(i)
-        })
-        stopCluster(cl)
+        }
+
       }else{
-        outputs <-try(lapply(1:nfolds,cv_evaluation))
+        outputs <-lapply(1:nfolds,cv_evaluation)
       }
       print(paste0("finish evaluation "))
       evaluation_obj = outputs[[1]]
