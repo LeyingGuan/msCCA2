@@ -67,22 +67,21 @@ my_init = function(xlist, A = 4){
   return(beta_init0)
 }
 
-deflation_func = function(R, zsum_orth){
+
+deflation_func = function(Ragg, R, zsum_orth){
+  Ragg = lm(Ragg~zsum_orth)$residuals
   D = length(R)
-  n = nrow(R[[1]])
   ps = sapply(R, function(z) dim(z)[2])
   pss = cumsum(ps)
   pss = c(0, pss)
-  ptotal = pss[D+1]
-  Ragg = matrix(0, ncol = ptotal, nrow = n)
+  Rnew = list()
   for(d in 1:D){
-    tmp =  t(R[[d]])%*%zsum_orth/sum(zsum_orth^2)
-    R[[d]] = R[[d]] -zsum_orth%*%t(tmp)
-    ll = (pss[d]+1):(pss[d+1])
-    Ragg[,ll] = R[[d]]
+    ll = (pss[d]+1):pss[d+1]
+    Rnew[[d]] = Ragg[,ll]
   }
-  return(list(R = R, Ragg = Ragg))
+  return(list(Ragg = Ragg, R = Rnew))
 }
+
 
 zsum_func = function(Xagg, beta_agg, prev_Zsum_orth = NULL){
   #update residual for better initialization
@@ -90,9 +89,7 @@ zsum_func = function(Xagg, beta_agg, prev_Zsum_orth = NULL){
   zsum = Xagg%*%beta_agg/sqrt(n)
   zsum_orth = zsum
   if(!is.null(prev_Zsum_orth)){
-    for(k in 1:ncol(prev_Zsum_orth)){
-      zsum_orth = zsum_orth - prev_Zsum_orth[,k] * sum(prev_Zsum_orth[,k]* zsum_orth)/sum(prev_Zsum_orth[,k]*prev_Zsum_orth[,k])
-    }
+    zsum_orth = lm(zsum~prev_Zsum_orth)$residuals
   }
   return(list(zsum = zsum, zsum_orth = zsum_orth))
 }
@@ -487,7 +484,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       self$prev_Zsum = cbind(self$prev_Zsum, zsum_out$zsum)
       self$prev_Zsum_orth = cbind(self$prev_Zsum_orth, zsum_out$zsum_orth)
     }
-    deflate_out = deflation_func(R = self$R, zsum_orth = zsum_out$zsum_orth)
+    deflate_out = deflation_func(Ragg = self$Ragg, R = self$R, zsum_orth = zsum_out$zsum_orth)
     self$R = deflate_out$R
     self$Ragg = deflate_out$Ragg
 
@@ -715,8 +712,9 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
       zsum_prev = cbind(zsum_prev, zsum_out$zsum)
       zsum_prev_orth = cbind(zsum_prev_orth, zsum_out$zsum_orth)
     }
-    deflate_out = deflation_func(R = rlist, zsum_orth = zsum_out$zsum_orth)
+    deflate_out = deflation_func(Ragg = ragg, R = rlist, zsum_orth = zsum_out$zsum_orth)
     rlist = deflate_out$R
+    ragg = deflate_out$Ragg
     #################
     ##################
     #evaluate on test data
