@@ -184,9 +184,10 @@ nte = dim(xagg.te)[1]
 n.core = detectCores()-1
 print(n.core)
 
-registerDoParallel(cl)
+
 
 multi.core= "doparallel"
+
 nfolds = 5
 set.seed(seed)
 foldid = sample(rep(1:nfolds, each = ceiling(n/nfolds)), n)
@@ -194,6 +195,7 @@ eta = 0.05; maxit = 5000; s_upper = n/4; eta_ratio = 0.05; penalty.C = 1.9;
 start_times =rep(NA, 3)
 end_times =rep(NA, 3)
 start_times[1] = Sys.time()
+
 fitted1 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,
                       l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
                       rho_maxit = maxit, print_out = 100, step_selection = "penalized", seed = 2021, multi.core=multi.core)
@@ -201,6 +203,9 @@ end_times[1] = Sys.time()
 print(end_times[1]-start_times[1])
 print(fitted1$errors_track_selected)
  
+if(multi.core=="doparallel"){
+  registerDoParallel(n.core)
+}
 start_times[2] = Sys.time()
 
 fitted2 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,

@@ -409,7 +409,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         #                                          rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
         #                                          l1proximal_maxit =  l1proximal_maxit, line_maxit =line_maxit, 
         #                                          warm_up = warm_up, trace = F, print_out = print_out, early_stop = F)
-        out_cv = direction_single_update_l1_func(X = Rtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
+        out_cv = direction_single_update_l1_func(X = Xtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
                                                  eta_low = eta_low,  eps = eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
                                                  rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
                                                  l1proximal_maxit =  l1proximal_maxit, line_maxit =line_maxit, 
@@ -545,7 +545,7 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
     #                                                beta_init =  msCCAproximal_l1$beta_init, 
     #                                                l1norm_max =  l1norm_max,   l1norm_min = l1norm_min,
     #                                                warm_up =warm_up, trace = T)
-    out = msCCAproximal_l1$direction_update_single(X =  msCCAproximal_l1$R, R =  msCCAproximal_l1$R,
+    out = msCCAproximal_l1$direction_update_single(X =  msCCAproximal_l1$X, R =  msCCAproximal_l1$R,
                                                    beta_init =  msCCAproximal_l1$beta_init,
                                                    l1norm_max =  l1norm_max,   l1norm_min = l1norm_min,
                                                    warm_up =warm_up, trace = T)
@@ -579,6 +579,9 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
       }
       Zsum_orth.te[,k] = zsum[,step_idxs[k]]
       errors_track[[k]][,3] = apply(zsum^2,2,sum)/apply(zs^2,3,sum)
+      if(self$trace){
+        print(errors_track[[k]][max(1,step_idxs[k]-50):min(step_idxs[k]+50, nrow(errors_track[[k]])),3])
+      }
     }
     msCCAproximal_l1$direction_grow(step_idx=step_idxs[k])
     if(k < ncomp){
