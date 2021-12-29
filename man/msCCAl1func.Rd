@@ -24,7 +24,10 @@ msCCAl1func(
   rho_maxit = 5000,
   print_out = 100,
   step_selection = "penalized",
-  seed = 2021
+  norm_varying_ridge = T,
+  multi.core = "mclapply",
+  seed = 2021,
+  trace = T
 )
 }
 \description{

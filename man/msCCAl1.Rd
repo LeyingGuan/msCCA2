@@ -43,6 +43,7 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
   eps = NULL,
   init_method = "rgcca",
   my_init_param = NULL,
+  norm_varying_ridge = T,
   trace = TRUE,
   print_out = 50
 )}\if{html}{\out{</div>}}
@@ -71,10 +72,7 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
   l1norm_min = NULL,
   warm_up = 50,
   rho_maxit = NULL,
-  trace = F,
-  early_stop = T,
-  record = T,
-  cv = F
+  trace = F
 )}\if{html}{\out{</div>}}
 }
 
@@ -90,6 +88,7 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
   nfolds = 10,
   foldid = NULL,
   seed = 2021,
+  multi.core = T,
   n.core = NULL,
   trace = F
 )}\if{html}{\out{</div>}}

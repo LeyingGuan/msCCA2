@@ -24,8 +24,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // msCCA_proximal_rank1
-List msCCA_proximal_rank1(List beta, const List& X, const List& R, double rho_tol, int rho_maxit, double eta, const int norm_type, int l0norm, double l1norm_max, double l1norm_min, double eta_ratio, double l1proximal_tol, int l1proximal_maxit, int line_maxit, double eta_low, double eps, int warm_up, const bool trace, const int print_out, bool early_stop);
-RcppExport SEXP _msCCA2_msCCA_proximal_rank1(SEXP betaSEXP, SEXP XSEXP, SEXP RSEXP, SEXP rho_tolSEXP, SEXP rho_maxitSEXP, SEXP etaSEXP, SEXP norm_typeSEXP, SEXP l0normSEXP, SEXP l1norm_maxSEXP, SEXP l1norm_minSEXP, SEXP eta_ratioSEXP, SEXP l1proximal_tolSEXP, SEXP l1proximal_maxitSEXP, SEXP line_maxitSEXP, SEXP eta_lowSEXP, SEXP epsSEXP, SEXP warm_upSEXP, SEXP traceSEXP, SEXP print_outSEXP, SEXP early_stopSEXP) {
+List msCCA_proximal_rank1(List beta, const List& X, const List& R, double rho_tol, int rho_maxit, double eta, const int norm_type, int l0norm, double l1norm_max, double l1norm_min, double eta_ratio, double l1proximal_tol, int l1proximal_maxit, int line_maxit, double eta_low, double eps, int warm_up, const bool trace, const int print_out, bool early_stop, bool norm_varying_ridge);
+RcppExport SEXP _msCCA2_msCCA_proximal_rank1(SEXP betaSEXP, SEXP XSEXP, SEXP RSEXP, SEXP rho_tolSEXP, SEXP rho_maxitSEXP, SEXP etaSEXP, SEXP norm_typeSEXP, SEXP l0normSEXP, SEXP l1norm_maxSEXP, SEXP l1norm_minSEXP, SEXP eta_ratioSEXP, SEXP l1proximal_tolSEXP, SEXP l1proximal_maxitSEXP, SEXP line_maxitSEXP, SEXP eta_lowSEXP, SEXP epsSEXP, SEXP warm_upSEXP, SEXP traceSEXP, SEXP print_outSEXP, SEXP early_stopSEXP, SEXP norm_varying_ridgeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -49,7 +49,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
     Rcpp::traits::input_parameter< const int >::type print_out(print_outSEXP);
     Rcpp::traits::input_parameter< bool >::type early_stop(early_stopSEXP);
-    rcpp_result_gen = Rcpp::wrap(msCCA_proximal_rank1(beta, X, R, rho_tol, rho_maxit, eta, norm_type, l0norm, l1norm_max, l1norm_min, eta_ratio, l1proximal_tol, l1proximal_maxit, line_maxit, eta_low, eps, warm_up, trace, print_out, early_stop));
+    Rcpp::traits::input_parameter< bool >::type norm_varying_ridge(norm_varying_ridgeSEXP);
+    rcpp_result_gen = Rcpp::wrap(msCCA_proximal_rank1(beta, X, R, rho_tol, rho_maxit, eta, norm_type, l0norm, l1norm_max, l1norm_min, eta_ratio, l1proximal_tol, l1proximal_maxit, line_maxit, eta_low, eps, warm_up, trace, print_out, early_stop, norm_varying_ridge));
     return rcpp_result_gen;
 END_RCPP
 }

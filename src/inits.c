@@ -8,11 +8,11 @@
  */
 
 /* .Call calls */
-extern SEXP _msCCA2_msCCA_proximal_rank1(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _msCCA2_msCCA_proximal_rank1(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _msCCA2_my_range(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_msCCA2_msCCA_proximal_rank1", (DL_FUNC) &_msCCA2_msCCA_proximal_rank1, 20},
+    {"_msCCA2_msCCA_proximal_rank1", (DL_FUNC) &_msCCA2_msCCA_proximal_rank1, 21},
     {"_msCCA2_my_range",             (DL_FUNC) &_msCCA2_my_range,              2},
     {NULL, NULL, 0}
 };

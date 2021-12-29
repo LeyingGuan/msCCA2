@@ -5,7 +5,7 @@ my_range <- function(n1, n2) {
     .Call(`_msCCA2_my_range`, n1, n2)
 }
 
-msCCA_proximal_rank1 <- function(beta, X, R, rho_tol, rho_maxit, eta, norm_type, l0norm, l1norm_max, l1norm_min, eta_ratio, l1proximal_tol, l1proximal_maxit, line_maxit, eta_low, eps, warm_up, trace = TRUE, print_out = 50L, early_stop = TRUE) {
-    .Call(`_msCCA2_msCCA_proximal_rank1`, beta, X, R, rho_tol, rho_maxit, eta, norm_type, l0norm, l1norm_max, l1norm_min, eta_ratio, l1proximal_tol, l1proximal_maxit, line_maxit, eta_low, eps, warm_up, trace, print_out, early_stop)
+msCCA_proximal_rank1 <- function(beta, X, R, rho_tol, rho_maxit, eta, norm_type, l0norm, l1norm_max, l1norm_min, eta_ratio, l1proximal_tol, l1proximal_maxit, line_maxit, eta_low, eps, warm_up, trace = TRUE, print_out = 50L, early_stop = TRUE, norm_varying_ridge = TRUE) {
+    .Call(`_msCCA2_msCCA_proximal_rank1`, beta, X, R, rho_tol, rho_maxit, eta, norm_type, l0norm, l1norm_max, l1norm_min, eta_ratio, l1proximal_tol, l1proximal_maxit, line_maxit, eta_low, eps, warm_up, trace, print_out, early_stop, norm_varying_ridge)
 }
 

@@ -7,9 +7,9 @@ library(msCCA2)
 library(parallel)
 library(doParallel)
 library(doMC)
-sourceCpp("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/src/solvers.cpp")
-source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/helpers.R")
-source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/msCCA.R")
+# sourceCpp("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/src/solvers.cpp")
+# source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/helpers.R")
+# source("~/Dropbox/CrossCorrespondance/mutilpleSetLinear/code/msCCA2/R/msCCA.R")
 
 
 #library(msCCA)
@@ -140,7 +140,7 @@ sim_data_mCCA = function(n = 200, nte = 1000, p = 200, s = 10, D = 5, seed =2021
               Sigma = Sigma))
 }
 p = 300; nte = 1000; ncomp = 3; alpha = 0; D = 4; ncomp1 =ncomp-1
-n=500; s = 5;D = 4;type = "identity";redundant = T; seed = 219;#seed = sample(1:10000,1);  
+n=500; s = 15;D = 4;type = "identity";redundant = F;seed = sample(1:10000,1);  
 
 dat = sim_data_mCCA(n = n, nte = nte, p =p, s = s, D = D, seed =seed, ncomp = ncomp,
                     redundant = redundant, type = type)
@@ -188,16 +188,16 @@ print(n.core)
 
 multi.core= "doparallel"
 
-nfolds = 5
+nfolds = n.core
 set.seed(seed)
 foldid = sample(rep(1:nfolds, each = ceiling(n/nfolds)), n)
-eta = 0.05; maxit = 5000; s_upper = n/4; eta_ratio = 0.05; penalty.C = 1.9;
+eta = 0.01; maxit = 5000; s_upper = n/2; eta_ratio = 0.05; penalty.C = 2; warm_up = 500; eps = log(p*D)/n
 start_times =rep(NA, 3)
 end_times =rep(NA, 3)
 start_times[1] = Sys.time()
 
-fitted1 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,
-                      l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
+fitted1 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=penalty.C,
+                      l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio, eps = eps, warm_up= warm_up,
                       rho_maxit = maxit, print_out = 100, step_selection = "penalized", seed = 2021, multi.core=multi.core)
 end_times[1] = Sys.time()  
 print(end_times[1]-start_times[1])
@@ -208,16 +208,17 @@ if(multi.core=="doparallel"){
 }
 start_times[2] = Sys.time()
 
-fitted2 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=2,
-                      l1norm_max =sqrt( s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
+fitted2 = msCCAl1func(xlist = xlist, ncomp=ncomp1, xlist.te =xlist.te, init_method = "soft-thr", foldid = foldid, penalty.C=penalty.C,
+                      l1norm_max =sqrt( s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,eps = eps, warm_up = warm_up,
                       rho_maxit = maxit, print_out = 100, step_selection = "cv", seed = 2021, multi.core=multi.core)
 end_times[2] = Sys.time()
 print(fitted2$errors_track_selected)
 print(end_times[2]-start_times[2])
 
 start_times[3] = Sys.time()
+alpha = 3
 fitted3 = riffle_sequential(xlist = xlist, ncomp = ncomp1, xlist.te = xlist.te, foldid = foldid, maxiter =maxit, eta = eta,
-                            ss = floor(seq(sqrt(2), sqrt(s_upper), length.out = 10)^2),  n.core = NULL, seed = seed, multi.core=multi.core)
+                            ss = floor(seq(2^(1/alpha), s_upper^(1/alpha), length.out = 10)^(alpha)),  n.core = NULL, seed = seed, multi.core=multi.core)
 end_times[3] = Sys.time()  
 print(fitted3$errors_track)
 print(end_times[3]-start_times[3])

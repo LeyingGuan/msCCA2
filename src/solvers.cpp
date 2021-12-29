@@ -91,7 +91,7 @@ arma::vec l0proximal(arma::vec theta, int l0bound){
 }
 
 List evaluation(arma::vec& beta_agg, const List& X,  const List& R,  int ptotal, int n, int D,
-                arma::vec& ps, arma::vec&  pss, double eps){
+                arma::vec& ps, arma::vec&  pss, double eps, double bound,bool norm_varying_ridge){
   arma::mat Zs = arma::zeros<arma::mat>(n, D);
   arma::mat Zs_residuals = arma::zeros<arma::mat>(n, D);
   arma::vec Zsum = arma::zeros<arma::vec>(n);
@@ -112,13 +112,17 @@ List evaluation(arma::vec& beta_agg, const List& X,  const List& R,  int ptotal,
   for(int d = 0; d < D; d++){
     B += sum(Zs.col(d)%Zs.col(d));
   }
-  double rho = A/(B+eps);
+  double eps_new = eps;
+  if(norm_varying_ridge){
+    eps_new = eps*bound*bound;
+  }
+  double rho = A/(B+eps_new);
   for(int d = 0; d < D; d++){
     arma::uvec u_idx =  my_range(pss(d),pss(d+1));
     arma::vec beta_d = beta_agg(u_idx);
     const arma::mat Xd = X[d];
     const arma::mat Rd = R[d];
-    zeta_agg(u_idx) = Rd.t() * Zsum/sqrt(n) - (Xd.t()*Zs.col(d)/sqrt(n)+eps * beta_d)*rho;
+    zeta_agg(u_idx) = Rd.t() * Zsum/sqrt(n) - (Xd.t()*Zs.col(d)/sqrt(n)+eps_new * beta_d)*rho;
   }
   return List::create(Named("beta") = beta,
                       Named("rho_denominator") = B,
@@ -130,7 +134,7 @@ List proximal_gradient_onestep(const List& X,  const List& R, arma::vec& ps, arm
                                arma::vec& beta_agg, arma::vec& zeta_agg, double rho_prev,
                                const int norm_type, int l0norm, double l1norm_min, double l1bound, 
                                double eta, double eta_ratio, double l1proximal_tol, int l1proximal_maxit, int line_maxit, 
-                               double eta_low, double eps){
+                               double eta_low, double eps, bool norm_varying_ridge){
   arma::vec beta_agg_new = arma::zeros<arma::vec>(ptotal);
   arma::vec theta_agg = arma::zeros<arma::vec>(ptotal);
   double A, B;
@@ -152,7 +156,7 @@ List proximal_gradient_onestep(const List& X,  const List& R, arma::vec& ps, arm
     bound_new = l0norm;
     beta_agg_new = l0proximal(theta_agg, bound_new);
   }
-  List eval_out = evaluation(beta_agg_new, X,  R,  ptotal, n, D, ps, pss, eps);
+  List eval_out = evaluation(beta_agg_new, X,  R,  ptotal, n, D, ps, pss, eps, bound_new, norm_varying_ridge);
   A = eval_out["rho_numerator"];
   B = eval_out["rho_denominator"];
   rho_new = A/(B+eps);
@@ -247,7 +251,7 @@ List msCCA_proximal_rank1(List beta, const List& X,  const List& R, double rho_t
                           const int norm_type, int l0norm, double  l1norm_max, double l1norm_min, 
                            double eta_ratio, double l1proximal_tol, int l1proximal_maxit,
                      int line_maxit, double eta_low, double eps, int warm_up,
-                    const bool trace = true, const int print_out = 50, bool early_stop = true){
+                    const bool trace = true, const int print_out = 50, bool early_stop = true, bool norm_varying_ridge = true){
   int D = X.size();
   int n, ptotal = 0;
   arma::vec ps = arma::zeros<arma::vec>(D);
@@ -284,7 +288,8 @@ List msCCA_proximal_rank1(List beta, const List& X,  const List& R, double rho_t
   beta_norms(it) = sum(abs(beta_agg));
   betas_all.col(it) =beta_agg*1.0; 
   double rho_denominator, rho_numerator;
-  List eval_out = evaluation(beta_agg, X,  R,  ptotal, n, D, ps,  pss,  eps);
+  double  bound = bounds(0);
+  List eval_out = evaluation(beta_agg, X,  R,  ptotal, n, D, ps,  pss,  eps, bound,norm_varying_ridge);
   rho_denominator = eval_out["rho_denominator"];
   rho_numerator = eval_out["rho_numerator"];
   arma::vec zeta_agg = eval_out["zeta_agg"];
@@ -292,12 +297,11 @@ List msCCA_proximal_rank1(List beta, const List& X,  const List& R, double rho_t
   rho_numerators(it) = rho_numerator;
   train_rhos(it) =  rho_numerator/(rho_denominator+eps);
   double rho = train_rhos(it);
-  double bound = bounds(it);
   while(warm_up_it < warm_up){
     List out = proximal_gradient_onestep(X, R, ps, pss, ptotal, n, D, beta_agg,  zeta_agg, rho, 
                                          norm_type, l0norm, l1norm_min, bound,
                                          eta, 0, l1proximal_tol, l1proximal_maxit,
-                                         line_maxit, eta_low,  eps);
+                                         line_maxit, eta_low,  eps, norm_varying_ridge);
     arma::vec beta_agg_new = out["beta_agg"] ;
     arma::vec zeta_agg_tmp = out["zeta_agg"] ;
     zeta_agg= zeta_agg_tmp*1.0;
@@ -322,7 +326,7 @@ List msCCA_proximal_rank1(List beta, const List& X,  const List& R, double rho_t
     List out = proximal_gradient_onestep(X, R, ps, pss, ptotal, n, D, beta_agg,  zeta_agg, rho, 
                                          norm_type, l0norm, l1norm_min, bound,
                                          eta, eta_ratio, l1proximal_tol, l1proximal_maxit,
-                                         line_maxit, eta_low,  eps);
+                                         line_maxit, eta_low,  eps, norm_varying_ridge);
     arma::vec beta_agg_new = out["beta_agg"] ;
     arma::vec zeta_agg_tmp = out["zeta_agg"] ;
     zeta_agg= zeta_agg_tmp*1.0;
@@ -342,7 +346,7 @@ List msCCA_proximal_rank1(List beta, const List& X,  const List& R, double rho_t
     relative_change = beta_change/eta;
     if(trace){
       if(it%print_out == 0){
-        Rcout << "rho_iteration: " << it << ", eta: " <<  eta << ", new obj: " <<train_rhos(it) << ", relative beta change (beta/eta):" << relative_change<< "\n";
+        Rcout << "rho_iteration: " << it << ", l1norm: " <<   beta_norms(it) << ", new obj: " <<train_rhos(it) << ", relative beta change (beta/eta):" << relative_change<< "\n";
       }
     }
     if(!early_stop){

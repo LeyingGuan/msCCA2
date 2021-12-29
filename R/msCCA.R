@@ -97,14 +97,14 @@ zsum_func = function(Xagg, beta_agg, prev_Zsum_orth = NULL){
 direction_single_update_l1_func = function(X, R,  beta_init, eta, eta_ratio,eta_low,  eps, 
                                         l1norm_max , l1norm_min,  rho_tol, rho_maxit,
                                         l1proximal_tol, l1proximal_maxit, line_maxit, 
-                                        warm_up, trace, print_out, early_stop){
+                                        warm_up, trace, print_out, early_stop, norm_varying_ridge){
   D = length(X)
   out =msCCA_proximal_rank1(beta =beta_init, X = X, R = R, eta = eta, eta_ratio = eta_ratio,
                             eta_low =  eta_low,   eps = eps, l1norm_max = l1norm_max, l1norm_min = l1norm_min,
                             rho_tol =  rho_tol , rho_maxit = rho_maxit,  norm_type = 1,  l0norm = 0, 
                              l1proximal_tol = l1proximal_tol,  l1proximal_maxit =  l1proximal_maxit,
                             line_maxit =  line_maxit,warm_up = warm_up, trace =  trace, print_out =  print_out,
-                            early_stop = early_stop)
+                            early_stop = early_stop, norm_varying_ridge=norm_varying_ridge)
   names = c("beta_augs", "beta_norms", "bounds",  "rho_denominators", "rho_numerators", "rhos")
   for(i in 1:length(names )){
     if(names[i]=="beta_augs"){
@@ -235,10 +235,11 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
   warm_up = NULL,
   l1norm_max = NULL,
   l1norm_min = NULL,
+  norm_varying_ridge = NULL,
   initialize = function(X, beta_init = NULL, norm_type = 1, eta = NULL, eta_ratio = NULL,
                         rho_tol = 1e-3, rho_maxit = 1e3, l1proximal_tol =1e-4, l1proximal_maxit = 1e3,
                         line_search = TRUE, line_maxit = 10, eta_low = NULL, eps = NULL,
-                        init_method = "rgcca", my_init_param = NULL,
+                        init_method = "rgcca", my_init_param = NULL, norm_varying_ridge = T,
                         trace = TRUE, print_out = 50){
     self$X = X;
     self$R = X;
@@ -251,6 +252,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
     self$pss = c(0, pss)
     self$ptotal = pss[self$D]
     self$init_method = init_method
+    self$norm_varying_ridge = norm_varying_ridge
     if(is.null(beta_init)){
       if(is.null(my_init_param)){
         self$my_init_param = 4
@@ -262,16 +264,16 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       self$beta_init = beta_init;
     }
     if(is.null(eta_ratio)){
-      eta_ratio = sqrt(1/n)
+      eta_ratio = sqrt(1/self$n)
     }
     if(is.null(eta_low)){
-      eta_low = 1.0/self$n
+      eta_low = 1/self$n
     }
     if(is.null(eps)){
-      eps = 1/n
+      eps = log(self$ptotal)/self$n
     }
     if(is.null(eta)){
-      eta = sqrt(1/n)
+      eta = sqrt(1/self$n)
     }
     self$eps = eps
     self$eta = eta
@@ -316,11 +318,15 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       }
     }
     self$warm_up = warm_up
+    if(trace){
+      print(self$warm_up)
+    }
     out = direction_single_update_l1_func(X = X, R = R,  beta_init = beta_init1, eta = self$eta, eta_ratio =  self$eta_ratio,
                                           eta_low = self$eta_low,  eps = self$eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
                                           rho_tol = self$rho_tol, rho_maxit = self$rho_maxit,
                                            l1proximal_tol = self$l1proximal_tol, l1proximal_maxit =  self$l1proximal_maxit, line_maxit =self$line_maxit, 
-                                           warm_up = self$warm_up, trace = trace, print_out = self$print_out, early_stop = T)
+                                           warm_up = self$warm_up, trace = trace, print_out = self$print_out, early_stop = T,
+                                           norm_varying_ridge = self$norm_varying_ridge)
     #   
     # out =msCCA_proximal_rank1(beta =beta_init1, X = X, R = R, rho_tol = self$rho_tol , rho_maxit = rho_maxit, 
     #                             eta = self$eta, norm_type = 1,  l0norm = 0, l1norm_max = l1norm_max, l1norm_min = l1norm_min,
@@ -389,7 +395,7 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
       eta = self$eta;eta_ratio = self$eta_ratio; eta_low = self$eta_low; eps = self$eps;
       l1norm_max = self$l1norm_max ; l1norm_min = self$l1norm_min; rho_tol = self$rho_tol; rho_maxit = ncol(self$out_single_update[["beta_augs"]]);
       l1proximal_tol = self$l1proximal_tol;l1proximal_maxit =  self$l1proximal_maxit;line_maxit =self$line_maxit;
-      warm_up = self$warm_up;  print_out = self$print_out; init_method = self$init_method; my_init_param = self$my_init_param
+      warm_up = self$warm_up;  print_out = self$print_out; init_method = self$init_method; my_init_param = self$my_init_param; norm_varying_ridge =self$norm_varying_ridge
       cv_evaluation = function(fold_id){
         ###use the grid of bounds and step sizes from the full fit
         print(paste0("start fold id = ", fold_id))
@@ -404,16 +410,11 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
         }
         beta_init_cv=beta_init_func(R =Rtmp, init_method = init_method , my_init_param=my_init_param, X = Xtmp)
         print(paste0("finish initializing fold id = ", fold_id))
-        # out_cv = direction_single_update_l1_func(X = Xtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
-        #                                          eta_low = eta_low,  eps = eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
-        #                                          rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
-        #                                          l1proximal_maxit =  l1proximal_maxit, line_maxit =line_maxit, 
-        #                                          warm_up = warm_up, trace = F, print_out = print_out, early_stop = F)
         out_cv = direction_single_update_l1_func(X = Xtmp, R = Rtmp,  beta_init = beta_init_cv, eta = eta, eta_ratio =  eta_ratio,
                                                  eta_low = eta_low,  eps = eps,  l1norm_max = l1norm_max , l1norm_min = l1norm_min,  
                                                  rho_tol = rho_tol, rho_maxit = rho_maxit,l1proximal_tol = l1proximal_tol, 
                                                  l1proximal_maxit =  l1proximal_maxit, line_maxit =line_maxit, 
-                                                 warm_up = warm_up, trace = F, print_out = print_out, early_stop = F)
+                                                 warm_up = warm_up, trace = F, print_out = print_out, early_stop = F, norm_varying_ridge = norm_varying_ridge)
         ##evaluate on test data
         Zs = array(NA, dim = c(length(test_foldid), D, dim(out_cv$beta_augs)[2]))
         Zs_residual = array(NA, dim = c(length(test_foldid), D, dim(out_cv$beta_augs)[2]))
@@ -504,8 +505,10 @@ msCCAl1 = R6::R6Class(classname = "msCCAl1obj",public= list(
 
   
 msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", nfolds = 20, warm_up = 50, penalty.C=2, foldid = NULL,
-                       l1norm_max = NULL, l1norm_min = NULL,  eta_ratio = NULL, eta = NULL, eps = NULL, my_init_param = NULL,
-                       l1proximal_maxit = 1e4, rho_tol = 1e-3, rho_maxit = 5000, print_out = 100, step_selection = "penalized", multi.core = "mclapply", seed = 2021){
+                       l1norm_max = NULL, l1norm_min = NULL,  eta_ratio = NULL, eta = NULL, eps = NULL, my_init_param = NULL, 
+                       l1proximal_maxit = 1e4, rho_tol = 1e-3, rho_maxit = 5000, print_out = 100, 
+                       step_selection = "penalized", norm_varying_ridge = T,
+                       multi.core = "mclapply", seed = 2021, trace = T){
   set.seed(seed)
   D = length(xlist)
   ps = sapply(xlist,function(z) dim(z)[2])
@@ -526,7 +529,8 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
   
   msCCAproximal_l1 = msCCAl1$new(X = xlist, beta_init =NULL, norm_type = 1, init_method = init_method, my_init_param = my_init_param,
                                  eta = eta, eta_ratio = eta_ratio,eps = eps, 
-                                 l1proximal_maxit = l1proximal_maxit, rho_tol = rho_tol, rho_maxit = rho_maxit, print_out = print_out, 
+                                 l1proximal_maxit = l1proximal_maxit, rho_tol = rho_tol, rho_maxit = rho_maxit,  norm_varying_ridge=norm_varying_ridge,
+                                 print_out = print_out, 
                                  trace = trace)
   
   step_idxs = rep(NA, ncomp)
@@ -538,6 +542,7 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
   }
   
   beta_inits = list()
+  errors_track_selected = data.frame(matrix(NA, nrow = ncomp, ncol = 3))
   for(k in 1:ncomp){
     print(paste0("####################comp", k))
     beta_inits[[k]] = msCCAproximal_l1$beta_init
@@ -548,7 +553,7 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
     out = msCCAproximal_l1$direction_update_single(X =  msCCAproximal_l1$X, R =  msCCAproximal_l1$R,
                                                    beta_init =  msCCAproximal_l1$beta_init,
                                                    l1norm_max =  l1norm_max,   l1norm_min = l1norm_min,
-                                                   warm_up =warm_up, trace = T)
+                                                   warm_up =warm_up, trace = trace)
     errors_track[[k]] = data.frame(matrix(NA, ncol = 3, nrow = ncol(out$beta_augs)))
     errors_track[[k]][,1] = out$beta_norms
     if(step_selection=="penalized"){
@@ -579,19 +584,17 @@ msCCAl1func = function(xlist, ncomp, xlist.te = NULL, init_method = "soft-thr", 
       }
       Zsum_orth.te[,k] = zsum[,step_idxs[k]]
       errors_track[[k]][,3] = apply(zsum^2,2,sum)/apply(zs^2,3,sum)
-      if(self$trace){
-        print(errors_track[[k]][max(1,step_idxs[k]-50):min(step_idxs[k]+50, nrow(errors_track[[k]])),3])
+      if(trace){
+        print(errors_track[[k]][max(1,step_idxs[k]-25):min(step_idxs[k]+25, nrow(errors_track[[k]])),])
       }
     }
     msCCAproximal_l1$direction_grow(step_idx=step_idxs[k])
+    errors_track_selected[k,] = errors_track[[k]][step_idxs[k],]
     if(k < ncomp){
       msCCAproximal_l1$beta_init = msCCAproximal_l1$beta_init_func(msCCAproximal_l1$R)
     }
   }
-  errors_track_selected = data.frame(matrix(NA, nrow = ncomp, ncol = 3))
-  for(k in 1:ncomp){
-    errors_track_selected[k,] = errors_track[[k]][step_idxs[k],]
-  }
+  
   #calculate Zsum
   return(list(fitted_model = msCCAproximal_l1, beta_inits = beta_inits, beta_norms =l1bounds ,
               step_idxs = step_idxs,  errors_track = errors_track, errors_track_selected = errors_track_selected))
@@ -740,6 +743,7 @@ riffle_sequential = function(xlist, ncomp, xlist.te = NULL, ss = floor(seq(2, n/
       Zsum_orth.te[,k] = zsum
       errors_track[k,3] = sum(zsum^2)/sum(zs^2)
     }
+    print(errors_track[k,] )
     #rho_te_eval = diag(t(beta_aggs)%*%A1%*%beta_aggs)/diag(t(beta_aggs)%*%B1%*%beta_aggs)
   }
   return(list(betas = betas, zsum_prev = zsum_prev, zsum_prev_orth= zsum_prev_orth, 
