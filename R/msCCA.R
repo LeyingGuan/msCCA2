@@ -37,13 +37,13 @@ my_init = function(xlist, A = 4){
     for(d in 1:D){
       ll = (pss[d]+1):pss[d+1]
       ss0 = ss[ll]
-      thr0 = sort(ss0,decreasing = T)[n0]
+      thr0 = sort(ss0,decreasing = T)[max(min(n0,length(ss0)),1)]
       idx_block[[d]] = which(ss0>=thr0)
       xlist_sub[[d]] = xlist[[d]][,idx_block[[d]]]
       idx_combined = c(idx_combined, ll[idx_block[[d]]])
     }
     tmp1 =  try(rgcca(A = xlist_sub,  tau = "optimal",
-                      scheme = "horst", verbose =F, ncomp = rep(1,length(xlist))))
+                      scheme = "horst", verbose =F, ncomp = rep(1,length(xlist_sub))))
     if("try-error"%in%class(tmp1)){
       for(d in 1:D){
         beta_inits_sub[[i]][[d]] =  rnorm(ps[d])
