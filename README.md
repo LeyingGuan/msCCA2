@@ -10,4 +10,25 @@ Download the source:
 
 install.packages("msCCA2_1.0.tar.gz")
 
-## Examples
+## Tutorial and Example
+### R6 msCCAl1 object
+The most flexible use of the implemented method is through the R6class object, msCCAl1, which allows easy sequential exploration of the data. We explain the most critical arguments and functions here.
+#### Object initialization
+Important initialization quantities:
+```ruby
+X:   be a list of matrix (of the same sample size) to determine the constructin function of the leading multi-block sparse CCA via L1-norm constraints
+beta_init: the initial list of projection coefficients for different data matrices
+init_method: beta initialization method if beta_init is NULL. Takes value in ("rgcca", "pma", "convex", "soft-thr"). The "convex" choice uses convex relaxation, which provides theoretical guarantees under stringent assumptions and can be very slow for large-scale data set. "soft-thr" is the suggested version that provides no-worse empirical performance compared to "convex" but much faster.
+l1norm_max: largest number of L1 norm allowed (at step 0), default is ?
+eta: as specified in the manuscript, which is a scale-free parameter determining the "relative" step size during proximal gradient descent. Default value is $1/sqrt(n)$.
+eta_ratio: the quantity multiplying eta in the bound decaying description in the manuscript. Default value is $sqrt(1/self$n)$.
+rho_maxit: maximum number of proximal gradient iterations.
+rho_tol: early stop when the ratio between the L2-norm of the beta change and eta is smaller than rho_tol. Default is 1E-3.
+```
+Initializing msCCAproximal_l1 to be the msCCAl1 object.
+```ruby
+msCCAproximal_l1 = msCCAl1$new(X = xlist, beta_init =NULL, init_method = "soft-thr", 
+                                 eta = eta, eta_ratio = eta_ratio,rho_tol = rho_tol, rho_maxit = rho_maxit)
+
+```
+which takes in a list of matrix xlist (of the same sample size) to determine the constructin function of the leading multi-block sparse CCA via L1-norm constraints. 
