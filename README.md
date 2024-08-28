@@ -82,10 +82,16 @@ fitted1 = msCCAl1func(xlist = xlist, ncomp=K, init_method = "soft-thr", foldid =
                       l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio, 
                       rho_maxit = maxit, print_out = 100, step_selection = "penalized") #penalized objective for penalty selection
 
-
 fitted2 = msCCAl1func(xlist = xlist, ncomp=K, init_method = "soft-thr", foldid = foldid, penalty.C=2,
                       l1norm_max =sqrt( s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
                       rho_maxit = maxit,  step_selection = "cv") # cross-validation for penalty selection
 ```
 -Please use simulation_test1.R as an example of using msCCAl1 object in practice.
+
+## Reproducibility: Simulations
+
+
+## Reproducibility: Multi-omics Applications
+
+
 
