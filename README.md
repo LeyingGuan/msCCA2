@@ -23,8 +23,7 @@ The most flexible use of the implemented method is through the R6class object, m
 #### Object initialization
 ##### Important initialization quantities:
 ```diff
--X:
-a list of matrix (of the same sample size) to determine the constructin function of the leading multi-block sparse CCA via L1-norm constraints
+-X: @a list of matrix (of the same sample size) to determine the constructin function of the leading multi-block sparse CCA via L1-norm constraints
 beta_init: the initial list of projection coefficients for different data matrices
 
 -init_method: beta initialization method if beta_init is NULL. Takes value in ("rgcca", "pma", "convex", "soft-thr"). The "convex" choice uses convex relaxation, which provides theoretical guarantees under stringent assumptions and can be very slow for large-scale data set. "soft-thr" is the suggested version that provides no-worse empirical performance compared to "convex" but much faster.
