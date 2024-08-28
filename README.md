@@ -22,7 +22,7 @@ install.packages("msCCA2_1.0.tar.gz")
 The most flexible use of the implemented method is through the R6class object, msCCAl1, which allows easy sequential exploration of the data. We explain the most critical arguments and functions here.
 #### Object initialization
 ##### Important initialization quantities:
-
+```diff
 -X:   be a list of matrix (of the same sample size) to determine the constructin function of the leading multi-block sparse CCA via L1-norm constraints
 beta_init: the initial list of projection coefficients for different data matrices
 
@@ -35,7 +35,7 @@ beta_init: the initial list of projection coefficients for different data matric
 -rho_maxit: maximum number of proximal gradient iterations.
 
 -rho_tol: early stop when the ratio between the L2-norm of the beta change and eta is smaller than rho_tol. Default is 1E-3.
-
+```
 ##### Initializing msCCAproximal_l1 to be the msCCAl1 object.
 In our experiments, all hyper-parameters have been set as the default values.
 ```ruby
