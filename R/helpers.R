@@ -236,7 +236,7 @@ rgcca_wrapper = function(xlist,xlist.te, ncomp){
 
 #' sgcca_wrapper: sgcca wrapper
 #'@export
-sgcca_wrapper = function(xlist,xlist.te, ncomp,mfolds = NULL, foldid = NULL){
+sgcca_wrapper = function(xlist,xlist.te, ncomp,nfolds = NULL, foldid = NULL){
   D = length(xlist)
   ps = sapply(xlist, function(z) dim(z)[2])
   pss = c(0,cumsum(ps))
