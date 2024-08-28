@@ -1,10 +1,4 @@
-```diff
-+ text in red
-- text in blue
-! text in orange
-# text in gray
-@@ text in purple (and bold)@@
-```
+
 # msCCA
 
 ## Installation
@@ -23,18 +17,19 @@ The most flexible use of the implemented method is through the R6class object, m
 #### Object initialization
 ##### Important initialization quantities:
 ```diff
-$$\color{blue}X$$: @a list of matrix (of the same sample size) to determine the constructin function of the leading multi-block sparse CCA via L1-norm constraints
+X :a list of matrix (of the same sample size) to determine the constructin function of the leading multi-block sparse CCA via L1-norm constraints
+
 beta_init: the initial list of projection coefficients for different data matrices
 
--init_method: beta initialization method if beta_init is NULL. Takes value in ("rgcca", "pma", "convex", "soft-thr"). The "convex" choice uses convex relaxation, which provides theoretical guarantees under stringent assumptions and can be very slow for large-scale data set. "soft-thr" is the suggested version that provides no-worse empirical performance compared to "convex" but much faster.
+init_method: beta initialization method if beta_init is NULL. Takes value in ("rgcca", "pma", "convex", "soft-thr"). The "convex" choice uses convex relaxation, which provides theoretical guarantees under stringent assumptions and can be very slow for large-scale data set. "soft-thr" is the suggested version that provides no-worse empirical performance compared to "convex" but much faster.
 
--eta: as specified in the manuscript, which is a scale-free parameter determining the "relative" step size during proximal gradient descent. Default value is $1/sqrt(n)$.
+eta: as specified in the manuscript, which is a scale-free parameter determining the "relative" step size during proximal gradient descent. Default value is $1/sqrt(n)$.
 
--eta_ratio: the quantity multiplying eta in the bound decaying description in the manuscript. Default value is $sqrt(1/self$n)$.
+eta_ratio: the quantity multiplying eta in the bound decaying description in the manuscript. Default value is sqrt(1/self$n).
 
--rho_maxit: maximum number of proximal gradient iterations.
+rho_maxit: maximum number of proximal gradient iterations.
 
--rho_tol: early stop when the ratio between the L2-norm of the beta change and eta is smaller than rho_tol. Default is 1E-3.
+rho_tol: early stop when the ratio between the L2-norm of the beta change and eta is smaller than rho_tol. Default is 1E-3.
 ```
 ##### Initializing msCCAproximal_l1 to be the msCCAl1 object.
 In our experiments, all hyper-parameters have been set as the default values.
@@ -45,12 +40,14 @@ msCCAproximal_l1 = msCCAl1$new(X = xlist, beta_init =NULL, init_method = "soft-t
 ```
 #### Estimation of a single msCCA leading direction
 Here, the three new arguments: 
-
+```diff
 R: the residualized matrix list used in constructing the numerator as described in the orthogonalization section in the manuscript.
 
 l1norm_max: largest value of L1 norm allowed (at step 0), default is the minimum between sqrt(p) and sqrt(n/4).
 
 l1norm_min: smallest value of L1 norm considered, default is sqrt(2).
+```
+Estimation:
 ```ruby
 out_all_onestep = msCCAproximal_l1$direction_update_single(X =  msCCAproximal_l1$X, R =  msCCAproximal_l1$R,
                                                    beta_init =  msCCAproximal_l1$beta_init,
@@ -74,8 +71,21 @@ l1bound = out$bounds[step_idxs]
 msCCAproximal_l1$direction_grow(step_idx=step_idx)
 msCCAproximal_l1$beta_init = msCCAproximal_l1$beta_init_func(msCCAproximal_l1$R) #rerun specified beta initialization method for the next direction
 ```
-The above steps can be repeated run for obtaining multiple directions sequentially, and enables the pratitioners to decide when to stop iteratively by looking at the current results via visualization, cross-validation, etc. The R6class object msCCAproximal_l1 should save all output quantities needed for achieving this goal. Please use simulation_test.R as an example of using msCCAl1 object in practice.
+The above steps can be repeated run for obtaining multiple directions sequentially, and enables the pratitioners to decide when to stop iteratively by looking at the current results via visualization, cross-validation, etc. The R6class object msCCAproximal_l1 should save all output quantities needed for achieving this goal. 
+
+-Please use simulation_test.R as an example of using msCCAl1 object in practice.
 
 ### The msCCAl1func main function wrapper
-We also provide a wrapper function for using the msCCAl1 object more easily if non-interactive exploration is needed. 
+We also provide a wrapper function for using the msCCAl1 object more easily if non-interactive exploration is needed. In this case, the user needs to specify the number of components to be estimated beforehand. Note that it is a sequential procedure with later directions having no influence on the earlier ones, and a smaller number of components set is for computational advantage. Hence, we suggest to set ncomp to be no smaller than the maximum number of factors you wish ever to use.
+```ruby
+fitted1 = msCCAl1func(xlist = xlist, ncomp=K, init_method = "soft-thr", foldid = foldid, penalty.C=2,
+                      l1norm_max =sqrt(s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio, 
+                      rho_maxit = maxit, print_out = 100, step_selection = "penalized") #penalized objective for penalty selection
+
+
+fitted2 = msCCAl1func(xlist = xlist, ncomp=K, init_method = "soft-thr", foldid = foldid, penalty.C=2,
+                      l1norm_max =sqrt( s_upper), l1norm_min = sqrt(2), eta = eta, eta_ratio = eta_ratio,
+                      rho_maxit = maxit,  step_selection = "cv") # cross-validation for penalty selection
+```
+-Please use simulation_test1.R as an example of using msCCAl1 object in practice.
 
