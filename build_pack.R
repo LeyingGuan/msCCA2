@@ -10,5 +10,5 @@ devtools::document(pkg = ".")
 devtools::check(pkg = ".")
 devtools::document(pkg = ".")
 
-R CMD build msCCA
-R CMD install msCCA
+R CMD build msCCA2
+R CMD install msCCA2

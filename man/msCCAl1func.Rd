@@ -23,6 +23,7 @@ msCCAl1func(
   rho_tol = 0.001,
   rho_maxit = 5000,
   print_out = 100,
+  early_stop = T,
   step_selection = "penalized",
   norm_varying_ridge = T,
   multi.core = "mclapply",

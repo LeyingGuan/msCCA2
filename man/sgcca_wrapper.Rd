@@ -4,7 +4,7 @@
 \alias{sgcca_wrapper}
 \title{sgcca_wrapper: sgcca wrapper}
 \usage{
-sgcca_wrapper(xlist, xlist.te, ncomp, mfolds = NULL, foldid = NULL)
+sgcca_wrapper(xlist, xlist.te, ncomp, nfolds = NULL, foldid = NULL)
 }
 \description{
 sgcca_wrapper: sgcca wrapper

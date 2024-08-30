@@ -14,17 +14,17 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{msCCAl1$new()}}
-\item \href{#method-beta_init_func}{\code{msCCAl1$beta_init_func()}}
-\item \href{#method-direction_update_single}{\code{msCCAl1$direction_update_single()}}
-\item \href{#method-direction_selection}{\code{msCCAl1$direction_selection()}}
-\item \href{#method-direction_grow}{\code{msCCAl1$direction_grow()}}
-\item \href{#method-clone}{\code{msCCAl1$clone()}}
+\item \href{#method-msCCAl1obj-new}{\code{msCCAl1$new()}}
+\item \href{#method-msCCAl1obj-beta_init_func}{\code{msCCAl1$beta_init_func()}}
+\item \href{#method-msCCAl1obj-direction_update_single}{\code{msCCAl1$direction_update_single()}}
+\item \href{#method-msCCAl1obj-direction_selection}{\code{msCCAl1$direction_selection()}}
+\item \href{#method-msCCAl1obj-direction_grow}{\code{msCCAl1$direction_grow()}}
+\item \href{#method-msCCAl1obj-clone}{\code{msCCAl1$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-msCCAl1obj-new"></a>}}
+\if{latex}{\out{\hypertarget{method-msCCAl1obj-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{msCCAl1$new(
@@ -51,8 +51,8 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-beta_init_func"></a>}}
-\if{latex}{\out{\hypertarget{method-beta_init_func}{}}}
+\if{html}{\out{<a id="method-msCCAl1obj-beta_init_func"></a>}}
+\if{latex}{\out{\hypertarget{method-msCCAl1obj-beta_init_func}{}}}
 \subsection{Method \code{beta_init_func()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{msCCAl1$beta_init_func(R)}\if{html}{\out{</div>}}
@@ -60,8 +60,8 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-direction_update_single"></a>}}
-\if{latex}{\out{\hypertarget{method-direction_update_single}{}}}
+\if{html}{\out{<a id="method-msCCAl1obj-direction_update_single"></a>}}
+\if{latex}{\out{\hypertarget{method-msCCAl1obj-direction_update_single}{}}}
 \subsection{Method \code{direction_update_single()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{msCCAl1$direction_update_single(
@@ -72,14 +72,15 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
   l1norm_min = NULL,
   warm_up = 50,
   rho_maxit = NULL,
+  early_stop = T,
   trace = F
 )}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-direction_selection"></a>}}
-\if{latex}{\out{\hypertarget{method-direction_selection}{}}}
+\if{html}{\out{<a id="method-msCCAl1obj-direction_selection"></a>}}
+\if{latex}{\out{\hypertarget{method-msCCAl1obj-direction_selection}{}}}
 \subsection{Method \code{direction_selection()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{msCCAl1$direction_selection(
@@ -96,8 +97,8 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-direction_grow"></a>}}
-\if{latex}{\out{\hypertarget{method-direction_grow}{}}}
+\if{html}{\out{<a id="method-msCCAl1obj-direction_grow"></a>}}
+\if{latex}{\out{\hypertarget{method-msCCAl1obj-direction_grow}{}}}
 \subsection{Method \code{direction_grow()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{msCCAl1$direction_grow(step_idx = 1)}\if{html}{\out{</div>}}
@@ -105,8 +106,8 @@ msCCAl1: R6 msCCAl1 object: users can use this object to estimate mCCA direction
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-msCCAl1obj-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-msCCAl1obj-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{
