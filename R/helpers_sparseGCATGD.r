@@ -47,7 +47,7 @@ updateH <-
 
 hard <-
   function(U, k){
-    if(r>1){
+    if(k>1){
       truncate.value <- sort(apply(U, 1, FUN = function(x) sum(x^2)),decreasing=TRUE)[k]
       U[which(apply(U, 1, FUN = function(x) sum(x^2))<truncate.value)] <- 0
     }else{
