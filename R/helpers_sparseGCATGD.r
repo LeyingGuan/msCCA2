@@ -122,7 +122,7 @@ sgca_init <-
     Gamma <- matrix(0,p,p)
     # While loop for the iterations
     while(criteria > epsilon && i <= maxiter){
-      for (i in 1:20){
+      for (ii in 1:20){
         Pi <- updatePi(B,sqB,A,H,Gamma,nu,rho,Pi,tau)
       }
       #Pi <- updatePi(B,sqB,A,H,Gamma,nu,lambda,Pi,tau)
