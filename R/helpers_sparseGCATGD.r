@@ -216,8 +216,8 @@ sgcaTGD_single = function(xlist, xagg, r, k,lambda = 0.01, eta=0.01, convergence
     ll = (pss[d]+1):(pss[d+1])
     Lambdahat_tmp[ll,ll] = t(xlist[[d]])%*%xlist[[d]]/n
   }
-  ag = initial.convex(A=Sigmahat_tmp, B=Lambdahat_tmp, lambda = 0.5*sqrt(log(p)/n), K = r, nu = 1, epsilon = 0.05, maxiter = 1000, trace = F)
-  #ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(p)/n),K=r ,nu=1,trace=FALSE)
+  #ag = initial.convex(A=Sigmahat_tmp, B=Lambdahat_tmp, lambda = 0.5*sqrt(log(p)/n), K = r, nu = 1, epsilon = 0.05, maxiter = 1000, trace = F)
+  ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(ptotal)/n),K=r ,nu=1,trace=FALSE)
   ainit <- init_process(ag$Pi, r)
   #ainit = NULL; for(l in 1:4){ainit = rbind(ainit,fitted$fitted_model$prev_directions[[l]])}
   if(is.null(dim(ainit))){
@@ -282,8 +282,8 @@ sgcaTGD_wrapper <- function(xlist, xagg, r, foldid,ks = NULL,
     }
     ##########
     syst1 = Sys.time()
-    ag = initial.convex(A=Sigmahat_tmp, B=Lambdahat_tmp, lambda = 0.5*sqrt(log(p)/n), K = r, nu = 1, epsilon = 0.05, maxiter = 1000, trace = T)
-    #ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(p)/n),K=r ,nu=1,trace=T)
+    #ag = initial.convex(A=Sigmahat_tmp, B=Lambdahat_tmp, lambda = 0.5*sqrt(log(p)/n), K = r, nu = 1, epsilon = 0.05, maxiter = 1000, trace = T)
+    ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(ptotal)/n),K=r ,nu=1,trace=T)
     ainit <- init_process(ag$Pi, r)
     if(is.null(dim(ainit))){
       ainit = matrix(ainit, ncol = 1)
