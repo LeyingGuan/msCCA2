@@ -110,7 +110,7 @@ init_process <-
 #'\examples{
 #'}
 sgca_init <-
-  function(A,B,rho,K,nu=1,epsilon=5e-3,maxiter=1000,trace=FALSE){
+  function(A,B,rho,K,iter_Pinner = 1,nu=1,epsilon=5e-3,maxiter=1000,trace=FALSE){
     p <- nrow(B)
     eigenB <- eigen(B)
     sqB <- eigenB$vectors%*%sqrt(diag(pmax(eigenB$values,0)))%*%t(eigenB$vectors)	
@@ -122,10 +122,10 @@ sgca_init <-
     Gamma <- matrix(0,p,p)
     # While loop for the iterations
     while(criteria > epsilon && i <= maxiter){
-      #for (ii in 1:20){
-        #Pi <- updatePi(B,sqB,A,H,Gamma,nu,rho,Pi,tau)
-      #}
-      Pi <- updatePi(B,sqB,A,H,Gamma,nu,rho,Pi,tau)
+      for (ii in 1:iter_Pinner){
+        Pi <- updatePi(B,sqB,A,H,Gamma,nu,rho,Pi,tau)
+      }
+      #Pi <- updatePi(B,sqB,A,H,Gamma,nu,rho,Pi,tau)
       
       H <- updateH(sqB,Gamma,nu,Pi,K)
       Gamma <- Gamma + (sqB%*%Pi%*%sqB-H) * nu	
@@ -195,6 +195,12 @@ sgca_tgd <-
       plot(error[1:iter], type='l',  main="Matrix distance and iterations", 
            xlab="Number of iterations", ylab="Matrix distance",)
     }
+    ut2 = apply(ut^2,2,sum)
+    for(j in 1:length(ut2)){
+	if(ut2[j]==0){
+           ut[,j]=rnorm(n=length(ut))/sqrt(length(ut))   
+	}
+    }
     final_estimate <- ut %*% sqrtm(t(ut) %*% B %*% ut)$Binv
     return(final_estimate)
   }
@@ -205,7 +211,7 @@ sgca_tgd <-
 #' r: rank
 #' k: row sparsity levels
 #'@export
-sgcaTGD_single = function(xlist, xagg, r, k,lambda = 0.01, eta=0.01, convergence=1e-3, maxiter=10000, plot = FALSE){
+sgcaTGD_single = function(xlist, xagg, r, k, iter_Pinner=1, lambda = 0.01, eta=0.01, convergence=1e-3, maxiter=10000, plot = FALSE){
   D = length(xlist)
   ps = sapply(xlist, function(z) dim(z)[2])
   pss = c(0,cumsum(ps))
@@ -217,7 +223,7 @@ sgcaTGD_single = function(xlist, xagg, r, k,lambda = 0.01, eta=0.01, convergence
     Lambdahat_tmp[ll,ll] = t(xlist[[d]])%*%xlist[[d]]/n
   }
   #ag = initial.convex(A=Sigmahat_tmp, B=Lambdahat_tmp, lambda = 0.5*sqrt(log(p)/n), K = r, nu = 1, epsilon = 0.05, maxiter = 1000, trace = F)
-  ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(ptotal)/n),K=r ,nu=1,trace=FALSE)
+  ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(ptotal)/n),K=r ,iter_Pinner=iter_Pinner,nu=1,trace=FALSE)
   ainit <- init_process(ag$Pi, r)
   #ainit = NULL; for(l in 1:4){ainit = rbind(ainit,fitted$fitted_model$prev_directions[[l]])}
   if(is.null(dim(ainit))){
@@ -234,7 +240,7 @@ sgcaTGD_single = function(xlist, xagg, r, k,lambda = 0.01, eta=0.01, convergence
 #' r: rank
 #' ks: row sparsity levels
 #'@export
-sgcaTGD_wrapper <- function(xlist, xagg, r, foldid,ks = NULL,
+sgcaTGD_wrapper <- function(xlist, xagg, r, foldid,ks = NULL, iter_Pinner=iter_Pinner, 
                             lambda = 0.01, eta=0.01, convergence=1e-3, maxiter=10000, plot = FALSE){
   if(is.null(ks)){
     ks = c(0:14) * 5
@@ -283,7 +289,7 @@ sgcaTGD_wrapper <- function(xlist, xagg, r, foldid,ks = NULL,
     ##########
     syst1 = Sys.time()
     #ag = initial.convex(A=Sigmahat_tmp, B=Lambdahat_tmp, lambda = 0.5*sqrt(log(p)/n), K = r, nu = 1, epsilon = 0.05, maxiter = 1000, trace = T)
-    ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(ptotal)/n),K=r ,nu=1,trace=T)
+    ag = sgca_init(A=Sigmahat_tmp, B=Lambdahat_tmp, rho=0.5*sqrt(log(ptotal)/n),K=r , iter_Pinner= iter_Pinner, nu=1,trace=T)
     ainit <- init_process(ag$Pi, r)
     if(is.null(dim(ainit))){
       ainit = matrix(ainit, ncol = 1)
@@ -312,11 +318,11 @@ sgcaTGD_wrapper <- function(xlist, xagg, r, foldid,ks = NULL,
   ik0 = which.max(cv_criteria)
   k0 = ks[ik0]
   syst1 = Sys.time()
-  final_out <- try(sgcaTGD_single(xlist=xlist, xagg = xagg, r = r, k = k0, 
+  final_out <- try(sgcaTGD_single(xlist=xlist, xagg = xagg, r = r, k = k0, iter_Pinner= iter_Pinner, 
                           lambda =lambda, eta=eta_use,convergence=convergence,maxiter= maxiter, plot =  plot))
   while("try-error" %in% class(final_out)){
     eta_use = eta_use/2
-    final_out <- try(sgcaTGD_single(xlist=xlist, xagg = xagg, r = r, k = k0, 
+    final_out <- try(sgcaTGD_single(xlist=xlist, xagg = xagg, r = r, k = k0, iter_Pinner=iter_Pinner ,
                                     lambda =lambda, eta=eta_use,convergence=convergence,maxiter= maxiter, plot =  plot))
     
   }
