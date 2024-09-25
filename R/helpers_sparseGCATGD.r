@@ -198,7 +198,7 @@ sgca_tgd <-
     ut2 = apply(ut^2,2,sum)
     for(j in 1:length(ut2)){
 	if(ut2[j]==0){
-           ut[,j]=rnorm(n=length(ut))/sqrt(length(ut))   
+           ut[,j]=rnorm(n=nrow(ut))/sqrt(nrow(ut))   
 	}
     }
     final_estimate <- ut %*% sqrtm(t(ut) %*% B %*% ut)$Binv
