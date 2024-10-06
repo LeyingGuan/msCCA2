@@ -88,10 +88,11 @@ fitted2 = msCCAl1func(xlist = xlist, ncomp=K, init_method = "soft-thr", foldid =
 ```
 -Please use simulation_test1.R as an example of using msCCAl1 object in practice.
 
-## Reproducibility: Simulations
+## Reproducibility: 
 
+Please find code for reproducing results in simulations and the multi-omics applications in 
 
-## Reproducibility: Multi-omics Applications
-
-
+```ruby
+msCCAexperiment.
+```
 
