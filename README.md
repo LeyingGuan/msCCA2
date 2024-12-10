@@ -90,9 +90,6 @@ fitted2 = msCCAl1func(xlist = xlist, ncomp=K, init_method = "soft-thr", foldid =
 
 ## Reproducibility: 
 
-Please find code for reproducing results in simulations and the multi-omics applications in 
+If you want to find the pipeline used for reproducing results in the original paper, please find them at [msCCAexperiment]([https://pages.github.com/](https://github.com/LeyingGuan/msCCAexperiments)).
 
-```ruby
-msCCAexperiment.
-```
 
