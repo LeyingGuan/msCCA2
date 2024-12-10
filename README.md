@@ -90,6 +90,6 @@ fitted2 = msCCAl1func(xlist = xlist, ncomp=K, init_method = "soft-thr", foldid =
 
 ## Reproducibility: 
 
-If you want to find the pipeline used for reproducing results in the original paper, please find them at [msCCAexperiment]([https://pages.github.com/](https://github.com/LeyingGuan/msCCAexperiments)).
+If you want to find the pipeline used for reproducing results in the original paper, please find them at https://github.com/LeyingGuan/msCCAexperiments.
 
 
